@@ -4,6 +4,7 @@
   "description": "D&D Spell Manager - For Steven Bradley's Coursework",
   "main": "server.js",
   "scripts": {
+    "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
