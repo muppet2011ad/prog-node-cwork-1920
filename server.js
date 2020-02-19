@@ -39,7 +39,7 @@ app.post('/api/admin/addspell', function (req, resp){
         resp.status(200).send();
     } catch (e) {
         console.log(e);
-        resp.status(500).send(e);
+        resp.status(500).send();
     }
 });
 
@@ -66,6 +66,29 @@ app.post('/api/admin/delspell', function (req, resp){
         else{
             resp.status(400).send();
         }
+    } catch (e) {
+        console.log(e);
+        resp.status(500).send();
+    }
+});
+
+app.post('/api/newchar', function (req, resp){
+    try {
+        let newchar = {
+            Id: uuid(),
+            Name: req.body.Name,
+            Level: req.body.Level,
+            Class: req.body.Class,
+            Spells: []
+        };
+        if (newchar.Name === undefined) {
+            resp.status(400).send();
+            return;
+        }
+        characters.push(newchar);
+        let json = JSON.stringify(characters);
+        fs.writeFile('./data/characters.json', json, 'utf8', () => {});
+        resp.status(200).send();
     } catch (e) {
         console.log(e);
         resp.status(500).send();
@@ -98,6 +121,6 @@ app.get('/api/spells', function (req, resp) {
         console.log(e);
         resp.status(500).send();
     }
-})
+});
 
 app.listen(8090);
