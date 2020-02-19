@@ -48,6 +48,15 @@ app.post('/api/admin/addspells', function (req, resp) {
         console.log(e);
         resp.status(500).send();
     }
+});
+
+app.get('/api/spells', function (req, resp) {
+    try {
+        resp.send(spells);
+    } catch (e) {
+        console.log(e);
+        resp.status(500).send();
+    }
 })
 
 app.listen(8090);
