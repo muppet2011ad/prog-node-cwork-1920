@@ -2,11 +2,14 @@ var express = require('express');
 var app = express();
 var bodyParser = require('body-parser');
 var fs = require('fs');
-var fetch = require('node-fetch');
 var uuid = require('uuid/v1');
+var basicAuth = require('express-basic-auth');
 app.use(express.static('client'));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+
+var admin = {'admin' : 'password'};
+app.use('/api/admin', basicAuth({users: admin}));
 
 var spells = require('./data/spells.json');
 var characters = require('./data/characters.json')
