@@ -1,1 +1,1 @@
-[{"Name":"Test Spell 1","Level":3,"School":"Transmutation","Components":[1,1,1],"Damage":"2d6+2","Desc":"This spell was sent via POST"},{"Name":"Test Spell 2","Level":4,"School":"Evocation","Components":[0,1,1],"Damage":"3d8","Desc":"This spell was sent via POST"}]
+[{"Id":"901a3170-5356-11ea-83b6-272f12ebd2f4","Name":"Test Spell 1","Level":3,"School":"Transmutation","Components":[1,1,1],"Damage":"2d6+2","Desc":"This spell was sent via POST"}]

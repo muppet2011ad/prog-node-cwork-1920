@@ -3,6 +3,7 @@ var app = express();
 var bodyParser = require('body-parser');
 var fs = require('fs');
 var fetch = require('node-fetch');
+var uuid = require('uuid/v1');
 app.use(express.static('client'));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -17,6 +18,7 @@ app.get('/', function (req, resp) {
 app.post('/api/admin/addspell', function (req, resp){
     try {
         let newspell = {
+            Id: uuid(),
             Name: req.body.Name,
             Level: req.body.Level,
             School: req.body.School,
@@ -50,11 +52,31 @@ app.post('/api/admin/addspells', function (req, resp) {
     }
 });
 
+app.post('/api/admin/delspell', function (req, resp){
+    try {
+        if (req.query.id != undefined){
+            spells = spells.filter(x => x.Id != req.query.id);
+            let json = JSON.stringify(spells);
+            fs.writeFile('./data/spells.json', json, 'utf8', () => {});
+            resp.status(200).send();
+        }
+        else{
+            resp.status(400).send();
+        }
+    } catch (e) {
+        console.log(e);
+        resp.status(500).send();
+    }
+})
+
 app.get('/api/spells', function (req, resp) {
     try {
         if (Object.keys(req.query).length === 0) { resp.send(spells); }
         else {
             let validspells = spells;
+            if (req.query.id != undefined){
+                validspells = [validspells.find(x => x.Id = req.query.id)];
+            }
             if (req.query.name != undefined){
                 validspells = validspells.filter(x => x.Name === req.query.name);
             }
