@@ -52,7 +52,23 @@ app.post('/api/admin/addspells', function (req, resp) {
 
 app.get('/api/spells', function (req, resp) {
     try {
-        resp.send(spells);
+        if (Object.keys(req.query).length === 0) { resp.send(spells); }
+        else {
+            let validspells = spells;
+            if (req.query.name != undefined){
+                validspells = validspells.filter(x => x.Name === req.query.name);
+            }
+            if (req.query.level != undefined){
+                validspells = validspells.filter(x => x.Level === parseInt(req.query.level));
+            }
+            if (req.query.school != undefined){
+                validspells = validspells.filter(x => x.School === req.query.school);
+            }
+            if (req.query.damage != undefined){
+                validspells = validspells.filter(x => x.Damage === req.query.damage);
+            }
+            resp.send(validspells);
+        }
     } catch (e) {
         console.log(e);
         resp.status(500).send();
