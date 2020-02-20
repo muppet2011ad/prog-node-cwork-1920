@@ -4,6 +4,7 @@ var bodyParser = require('body-parser');
 var fs = require('fs');
 var uuid = require('uuid/v1');
 var basicAuth = require('express-basic-auth');
+var nodeasync = require('async');
 app.use(express.static('client'));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -12,7 +13,7 @@ var admin = {'admin' : 'password'};
 app.use('/api/admin', basicAuth({users: admin}));
 
 var spells = require('./data/spells.json');
-var characters = require('./data/characters.json')
+var charindex = require('./data/charindex.json');
 
 app.get('/', function (req, resp) {
     resp.send('Hello, World!');
@@ -79,15 +80,18 @@ app.post('/api/newchar', function (req, resp) {
             Name: req.body.Name,
             Level: req.body.Level,
             Class: req.body.Class,
+            Race: req.body.Race,
             Spells: []
         };
         if (newchar.Name === undefined) {
             resp.status(400).send();
             return;
         }
-        characters.push(newchar);
-        let json = JSON.stringify(characters);
-        fs.writeFile('./data/characters.json', json, 'utf8', () => {});
+        charindex.push({Id: newchar.Id, Name: newchar.Name});
+        let indexjson = JSON.stringify(charindex);
+        fs.writeFile('./data/charindex.json', indexjson, 'utf8', () => {});
+        let charjson = JSON.stringify(newchar);
+        fs.writeFile('./data/chars/' + newchar.Id + '.json', charjson, 'utf8', () => {});
         resp.status(200).send();
     } catch (e) {
         console.log(e);
@@ -95,21 +99,28 @@ app.post('/api/newchar', function (req, resp) {
     }
 });
 
-app.post('/api/editchar', function (req, resp) {
+app.post('/api/editchar', async function (req, resp) {
     try {
         if (req.body.Id === undefined) { resp.status(400).send(); return;}
-        let char = characters.find(x => x.Id == req.body.Id);
-        if (char === undefined) { resp.status(400).send(); return;}
-        if (req.body.Name != undefined) {char.Name = req.body.Name;}
+        let index = charindex.find(x => x.Id == req.body.Id);
+        if (index === undefined) { resp.status(400).send(); return;}
+        let char = require('./data/chars/' + index.Id + '.json');
+        if (req.body.Name != undefined) {
+            char.Name = req.body.Name;
+            index.Name = req.body.Name;
+            let indexjson = JSON.stringify(charindex);
+            fs.writeFile('./data/charindex.json', indexjson, 'utf8', () => {});
+        }
         if (req.body.Level != undefined) {char.Level = req.body.Level;}
         if (req.body.Class != undefined) {char.Class = req.body.Class;}
+        if (req.body.Race != undefined) {char.Race = req.body.Race;}
         if (req.body.Spells != undefined) {
             if (req.body.Spells.length != 2) { resp.status(400).send(); return;}
             char.Spells = char.Spells.concat(req.body.Spells[0]);
             char.Spells = char.Spells.filter(x => !req.body.Spells[1].includes(x));
         }
-        let json = JSON.stringify(characters);
-        fs.writeFile('./data/characters.json', json, 'utf8', () => {});
+        let charjson = JSON.stringify(char);
+        fs.writeFile('./data/chars/' + char.Id + '.json', charjson, 'utf8', () => {});
         resp.status(200).send();
     } catch (e) {
         console.log(e);
@@ -145,19 +156,42 @@ app.get('/api/spells', function (req, resp) {
     }
 });
 
+function readCharacter(file, callback) {
+    fs.readFile(file, 'utf8', callback);
+}
+
 app.get('/api/characters', function (req, resp) {
     try {
-        if (Object.keys(req.query).length === 0) { resp.send(characters); }
-        else {
-            let validchars = characters;
-            if (req.query.id != undefined) {
-                validchars = [validchars.find(x => x.Id === req.query.id)];
+        let files = charindex.map(x => './data/chars/' + x.Id + '.json');
+        //let characters = []
+        //for (let i = 0; i < charindex.length; i++){
+        //    fs.readFile('./data/chars/' + charindex[i].Id + '.json', 'utf8', (err, data) => {characters.push(JSON.parse(data));});
+        //}
+        nodeasync.map(files, readCharacter, function (err, characters) {
+            characters = characters.map(x => JSON.parse(x));
+            if (Object.keys(req.query).length === 0) { resp.send(characters); }
+            else {
+                let validchars = characters;
+                if (req.query.id != undefined) {
+                    validchars = [validchars.find(x => x.Id === req.query.id)];
+                }
+                if (req.query.name != undefined) {
+                    validchars = validchars.filter(x => x.Name.includes(req.query.name));
+                }
+                resp.send(validchars);
             }
-            if (req.query.name != undefined) {
-                validchars = validchars.filter(x => x.Name.includes(req.query.name));
-            }
-            resp.send(validchars);
-        }
+        });
+        // if (Object.keys(req.query).length === 0) { resp.send(characters); }
+        // else {
+        //     let validchars = characters;
+        //     if (req.query.id != undefined) {
+        //         validchars = [validchars.find(x => x.Id === req.query.id)];
+        //     }
+        //     if (req.query.name != undefined) {
+        //         validchars = validchars.filter(x => x.Name.includes(req.query.name));
+        //     }
+        //     resp.send(validchars);
+        // }
     } catch (e) {
         console.log(e);
         resp.status(500).send();
