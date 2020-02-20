@@ -101,10 +101,10 @@ app.get('/api/spells', function (req, resp) {
         else {
             let validspells = spells;
             if (req.query.id != undefined){
-                validspells = [validspells.find(x => x.Id = req.query.id)];
+                validspells = [validspells.find(x => x.Id === req.query.id)];
             }
             if (req.query.name != undefined){
-                validspells = validspells.filter(x => x.Name === req.query.name);
+                validspells = validspells.filter(x => x.Name.includes(req.query.name));
             }
             if (req.query.level != undefined){
                 validspells = validspells.filter(x => x.Level === parseInt(req.query.level));
@@ -116,6 +116,25 @@ app.get('/api/spells', function (req, resp) {
                 validspells = validspells.filter(x => x.Damage === req.query.damage);
             }
             resp.send(validspells);
+        }
+    } catch (e) {
+        console.log(e);
+        resp.status(500).send();
+    }
+});
+
+app.get('/api/characters', function (req, resp) {
+    try {
+        if (Object.keys(req.query).length === 0) { resp.send(characters); }
+        else {
+            let validchars = characters;
+            if (req.query.id != undefined) {
+                validchars = [validchars.find(x => x.Id === req.query.id)];
+            }
+            if (req.query.name != undefined) {
+                validchars = validchars.filter(x => x.Name.includes(req.query.name));
+            }
+            resp.send(validchars);
         }
     } catch (e) {
         console.log(e);
