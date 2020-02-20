@@ -72,7 +72,7 @@ app.post('/api/admin/delspell', function (req, resp){
     }
 });
 
-app.post('/api/newchar', function (req, resp){
+app.post('/api/newchar', function (req, resp) {
     try {
         let newchar = {
             Id: uuid(),
@@ -93,7 +93,29 @@ app.post('/api/newchar', function (req, resp){
         console.log(e);
         resp.status(500).send();
     }
-})
+});
+
+app.post('/api/editchar', function (req, resp) {
+    try {
+        if (req.body.Id === undefined) { resp.status(400).send(); return;}
+        let char = characters.find(x => x.Id == req.body.Id);
+        if (char === undefined) { resp.status(400).send(); return;}
+        if (req.body.Name != undefined) {char.Name = req.body.Name;}
+        if (req.body.Level != undefined) {char.Level = req.body.Level;}
+        if (req.body.Class != undefined) {char.Class = req.body.Class;}
+        if (req.body.Spells != undefined) {
+            if (req.body.Spells.length != 2) { resp.status(400).send(); return;}
+            char.Spells = char.Spells.concat(req.body.Spells[0]);
+            char.Spells = char.Spells.filter(x => !req.body.Spells[1].includes(x));
+        }
+        let json = JSON.stringify(characters);
+        fs.writeFile('./data/characters.json', json, 'utf8', () => {});
+        resp.status(200).send();
+    } catch (e) {
+        console.log(e);
+        resp.status(500).send();
+    }
+});
 
 app.get('/api/spells', function (req, resp) {
     try {
