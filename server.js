@@ -163,10 +163,6 @@ function readCharacter(file, callback) {
 app.get('/api/characters', function (req, resp) {
     try {
         let files = charindex.map(x => './data/chars/' + x.Id + '.json');
-        //let characters = []
-        //for (let i = 0; i < charindex.length; i++){
-        //    fs.readFile('./data/chars/' + charindex[i].Id + '.json', 'utf8', (err, data) => {characters.push(JSON.parse(data));});
-        //}
         nodeasync.map(files, readCharacter, function (err, characters) {
             characters = characters.map(x => JSON.parse(x));
             if (Object.keys(req.query).length === 0) { resp.send(characters); }
@@ -181,17 +177,6 @@ app.get('/api/characters', function (req, resp) {
                 resp.send(validchars);
             }
         });
-        // if (Object.keys(req.query).length === 0) { resp.send(characters); }
-        // else {
-        //     let validchars = characters;
-        //     if (req.query.id != undefined) {
-        //         validchars = [validchars.find(x => x.Id === req.query.id)];
-        //     }
-        //     if (req.query.name != undefined) {
-        //         validchars = validchars.filter(x => x.Name.includes(req.query.name));
-        //     }
-        //     resp.send(validchars);
-        // }
     } catch (e) {
         console.log(e);
         resp.status(500).send();
