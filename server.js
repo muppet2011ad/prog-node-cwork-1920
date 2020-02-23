@@ -136,6 +136,10 @@ app.get('/api/spells', function (req, resp) {
             if (req.query.id != undefined){
                 validspells = [validspells.find(x => x.Id === req.query.id)];
             }
+            else if (req.query.ids != undefined){
+                let ids = JSON.parse(req.query.ids);
+                validspells = validspells.filter(x => ids.includes(x.Id));
+            }
             if (req.query.name != undefined){
                 validspells = validspells.filter(x => x.Name.includes(req.query.name));
             }
