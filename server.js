@@ -15,6 +15,8 @@ app.use('/api/admin', basicAuth({users: admin}));
 var spells = require('./data/spells.json');
 var charindex = require('./data/charindex.json');
 
+app.use(express.static('client'));
+
 app.get('/', function (req, resp) {
     resp.send('Hello, World!');
 });
