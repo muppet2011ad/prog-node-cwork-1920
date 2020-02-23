@@ -9,6 +9,7 @@ app.use(express.static('client'));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
+app.use('/', basicAuth());
 var admin = {'admin' : 'password'};
 app.use('/api/admin', basicAuth({users: admin}));
 
@@ -16,6 +17,17 @@ var spells = require('./data/spells.json');
 var charindex = require('./data/charindex.json');
 
 app.use(express.static('client'));
+
+function Authorise(username, password, cb) {
+    if (basicAuth.safeCompare(username, 'admin') & basicAuth.safeCompare(password, 'password')){
+        return cb(null, true);
+    }
+    let users = require('./data/users.json');
+    let requser = users.find(x => x.Name = username);
+    if (requser != undefined) {
+        return cb(null, basicAuth.safeCompare(requser.Password, password));
+    }
+}
 
 app.get('/', function (req, resp) {
     resp.send('Hello, World!');
@@ -129,6 +141,8 @@ app.post('/api/editchar', async function (req, resp) {
         resp.status(500).send();
     }
 });
+
+
 
 app.get('/api/spells', function (req, resp) {
     try {
