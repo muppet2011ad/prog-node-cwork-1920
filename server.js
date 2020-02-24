@@ -9,7 +9,8 @@ app.use(express.static('client'));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-app.use('/', basicAuth());
+var users = require('./data/users.json');
+app.use('/', basicAuth({authorizer: Authorise, authorizeAsync: true}));
 var admin = {'admin' : 'password'};
 app.use('/api/admin', basicAuth({users: admin}));
 
@@ -22,10 +23,13 @@ function Authorise(username, password, cb) {
     if (basicAuth.safeCompare(username, 'admin') & basicAuth.safeCompare(password, 'password')){
         return cb(null, true);
     }
-    let users = require('./data/users.json');
     let requser = users.find(x => x.Name = username);
+    console.log(requser);
     if (requser != undefined) {
         return cb(null, basicAuth.safeCompare(requser.Password, password));
+    }
+    else {
+        return cb(null, false);
     }
 }
 
@@ -97,7 +101,7 @@ app.post('/api/newchar', function (req, resp) {
             Race: req.body.Race,
             Spells: []
         };
-        if (newchar.Name === undefined) {
+        if (newchar.Name === undefined || newchar.user === undefined) {
             resp.status(400).send();
             return;
         }
@@ -106,6 +110,9 @@ app.post('/api/newchar', function (req, resp) {
         fs.writeFile('./data/charindex.json', indexjson, 'utf8', () => {});
         let charjson = JSON.stringify(newchar);
         fs.writeFile('./data/chars/' + newchar.Id + '.json', charjson, 'utf8', () => {});
+        let user = users.find(x => x.Name == req.body.username);
+        user.Chars.push(newchar.Id);
+        fs.writeFile('./data/users.json', JSON.stringify(users), 'utf8', () => {});
         resp.status(200).send();
     } catch (e) {
         console.log(e);
@@ -115,6 +122,8 @@ app.post('/api/newchar', function (req, resp) {
 
 app.post('/api/editchar', async function (req, resp) {
     try {
+        let user = users.find(x => x.Name == req.body.username);
+        if (!user.Chars.includes(req.body.Id)) { resp.status(401).send(); return;}
         if (req.body.Id === undefined) { resp.status(400).send(); return;}
         let index = charindex.find(x => x.Id == req.body.Id);
         if (index === undefined) { resp.status(400).send(); return;}
