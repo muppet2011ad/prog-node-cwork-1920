@@ -23,8 +23,7 @@ function Authorise(username, password, cb) {
     if (basicAuth.safeCompare(username, 'admin') & basicAuth.safeCompare(password, 'password')){
         return cb(null, true);
     }
-    let requser = users.find(x => x.Name = username);
-    console.log(requser);
+    let requser = users.find(x => x.Name === username);
     if (requser != undefined) {
         return cb(null, basicAuth.safeCompare(requser.Password, password));
     }
@@ -101,7 +100,7 @@ app.post('/api/newchar', function (req, resp) {
             Race: req.body.Race,
             Spells: []
         };
-        if (newchar.Name === undefined || newchar.user === undefined) {
+        if (newchar.Name === undefined || req.auth.user === undefined) {
             resp.status(400).send();
             return;
         }
@@ -110,7 +109,7 @@ app.post('/api/newchar', function (req, resp) {
         fs.writeFile('./data/charindex.json', indexjson, 'utf8', () => {});
         let charjson = JSON.stringify(newchar);
         fs.writeFile('./data/chars/' + newchar.Id + '.json', charjson, 'utf8', () => {});
-        let user = users.find(x => x.Name == req.body.username);
+        let user = users.find(x => x.Name == req.auth.user);
         user.Chars.push(newchar.Id);
         fs.writeFile('./data/users.json', JSON.stringify(users), 'utf8', () => {});
         resp.status(200).send();
@@ -122,7 +121,7 @@ app.post('/api/newchar', function (req, resp) {
 
 app.post('/api/editchar', async function (req, resp) {
     try {
-        let user = users.find(x => x.Name == req.body.username);
+        let user = users.find(x => x.Name == req.auth.user);
         if (!user.Chars.includes(req.body.Id)) { resp.status(401).send(); return;}
         if (req.body.Id === undefined) { resp.status(400).send(); return;}
         let index = charindex.find(x => x.Id == req.body.Id);
@@ -191,7 +190,11 @@ function readCharacter(file, callback) {
 
 app.get('/api/characters', function (req, resp) {
     try {
-        let files = charindex.map(x => './data/chars/' + x.Id + '.json');
+        let userchars = [];
+        let test = users.find(x => x.Name == req.auth.user);
+        if (req.auth.user != "admin"){ userchars = users.find(x => x.Name === req.auth.user).Chars; }
+        else { userchars = charindex; }
+        let files = userchars.map(x => './data/chars/' + x + '.json');
         nodeasync.map(files, readCharacter, function (err, characters) {
             characters = characters.map(x => JSON.parse(x));
             if (Object.keys(req.query).length === 0) { resp.send(characters); }
