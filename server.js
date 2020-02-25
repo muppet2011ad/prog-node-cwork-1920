@@ -10,13 +10,13 @@ app.use(bodyParser.urlencoded({ extended: false })); // Use bodyparser for post 
 app.use(bodyParser.json()); // Lets us parse json
 
 var users = require('./data/users.json'); // Load user data
-app.use('/', basicAuth({authorizer: Authorise, authorizeAsync: true})); // Everything by default requires authorisation
+app.use('/auth', basicAuth({authorizer: Authorise, authorizeAsync: true}));
+app.use('/api', basicAuth({authorizer: Authorise, authorizeAsync: true})); // Everything by default requires authorisation
 var admin = {'admin' : 'password'}; // Admin user
 app.use('/api/admin', basicAuth({users: admin})); // If something is under the admin category it needs to use the admin user
 
 var spells = require('./data/spells.json');
 var charindex = require('./data/charindex.json'); // Loads the spell and character index data
-
 
 function Authorise(username, password, cb) { // Authoriser function
     if (basicAuth.safeCompare(username, 'admin') & basicAuth.safeCompare(password, 'password')){ // If they use the admin login then they're in
@@ -33,6 +33,17 @@ function Authorise(username, password, cb) { // Authoriser function
 
 app.get('/', function (req, resp) { // Add a get route at / to give an easy check that the server is up
     resp.send('Hello, World!');
+});
+
+app.get('/auth', function (req, resp) {
+    try {
+        if (req.auth.user === "admin") { resp.send("admin"); }
+        else { resp.send("user"); }
+    }
+    catch (e) {
+        console.log(e);
+        resp.status(500).send();
+    }
 });
 
 app.post('/api/admin/addspell', function (req, resp){ // Route to add a spell
@@ -150,7 +161,24 @@ app.post('/api/editchar', async function (req, resp) { // Route to edit characte
     }
 });
 
-
+app.post('/newuser', function (req, resp) {
+    try{
+        let newuser = {
+            Name: req.body.username,
+            Password: req.body.password,
+            Chars: []
+        };
+        if (users.find(x => x.Name == newuser.Name) != undefined) {resp.status(401).send();}
+        if (newuser.Name == "" || newuser.Password == "" || newuser.Name == undefined || newuser.Password == undefined) {resp.status(400).send(); return;}
+        users.push(newuser);
+        fs.writeFile('./data/users.json', JSON.stringify(users), 'utf8', () => {}); // Write to file
+        resp.status(200).send();
+    }
+    catch (e) {
+        console.log(e);
+        resp.status(500).send();
+    }
+});
 
 app.get('/api/spells', function (req, resp) { // Function to get spells
     try {
