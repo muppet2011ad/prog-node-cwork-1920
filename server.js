@@ -191,22 +191,22 @@ function readCharacter(file, callback) { // Function to read a single file in (t
 app.get('/api/characters', function (req, resp) { // Route to search through characters
     try {
         let userchars = []; // Sets up a list to store the characters that the user has access to
-        if (req.auth.user != "admin"){ userchars = users.find(x => x.Name === req.auth.user).Chars; } // Filter the characters based on what the user has access to
+        let usercharindex = users.find(x => x.Name === req.auth.user).Chars;
+        if (req.auth.user != "admin"){ userchars = charindex.filter(x => usercharindex.includes(x.Id)); } // Filter the characters based on what the user has access to
         else { userchars = charindex; } // If the user is the admin, they can see all characters
-        let files = userchars.map(x => './data/chars/' + x + '.json'); // Load these characters into memory
+        if (Object.keys(req.query).length != 0) {
+            if (req.query.id != undefined) {
+                userchars = [userchars.find(x => x.Id === req.query.id)];
+                if (userchars[0] === undefined) {resp.status(401).send(); return;}
+            }
+            if (req.query.name != undefined) {
+                userchars = userchars.filter(x => x.Name.includes(req.query.name));
+            }
+        }
+        let files = userchars.map(x => './data/chars/' + x.Id + '.json'); // Load these characters into memory
         nodeasync.map(files, readCharacter, function (err, characters) { // This does it asynchronously so we don't block the event loop
             characters = characters.map(x => JSON.parse(x)); // Parse all of the loaded data into JSON objects
-            if (Object.keys(req.query).length === 0) { resp.send(characters); } // If they've not sent any search parameters, return all available characters
-            else {
-                let validchars = characters;
-                if (req.query.id != undefined) {
-                    validchars = [validchars.find(x => x.Id === req.query.id)];
-                }
-                if (req.query.name != undefined) {
-                    validchars = validchars.filter(x => x.Name.includes(req.query.name));
-                } // Otherwise filter as appropriate
-                resp.send(validchars);
-            }
+            resp.send(characters);
         });
     } catch (e) {
         console.log(e);
