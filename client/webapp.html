@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <title>Roll20 Spell Manager</title>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+        <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+    </head>
+    <body>
+        <div class="jumbotron text-center" style="margin-bottom:0">
+            <h1>Roll20 Spell Manager</h1>
+            <p id="welcome"></p>
+        </div>
+        <div class="container" style="margin-top:25px">
+            <div class="row">
+                <div class="col">
+                    <h2>My Characters</h2>
+                    <form id="charsearch">
+                        <div class="container">
+                            <div class="row">
+                                <label for="name">Search Characters:</label>
+                            </div>
+                            <div class="row">
+                                <div class="col-8">
+                                    <input type="text" id="name" class="form-control" placeholder="Character name...">
+                                </div>
+                                <div class="col-4">
+                                    <button type="submit" class="btn btn-primary">Search</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="col">
+                    <h2>Character</h2>
+                </div>
+            </div>
+        </div>
+    </body>
+    <script src="charsearch.js"></script>
+    <script>
+        try{
+            let auth = localStorage.getItem("auth");
+            let username = atob(auth.substring(6)).split(":")[0];
+            if (username == "") {
+                document.getElementById("welcome").innerHTML = "You are not logged in. Please <a href='http://localhost:8090/'>log in</a> before attempting to use the page.";
+            }
+            else{
+                document.getElementById("welcome").innerHTML = "Welcome, " + username;
+            }
+        }
+        catch (e) {
+            document.getElementById("welcome").innerHTML = "You are not logged in. Please <a href='http://localhost:8090/'>log in</a> before attempting to use the page.";
+        }
+    </script>
+</html>

@@ -51,7 +51,13 @@
             if (response.status === 401) {text.innerHTML="Account already exists"; text.style="color:red";}
             if (response.status === 400) {text.innerHTML="Not all fields complete"; text.style="color:red";}
             if (response.status === 500) {text.innerHTML="Internal server error"; text.style="color:red";}
-            if (response.status === 200) {text.innerHTML="Account creation successful, redirecting..."; text.style="color:green"}
+            if (response.status === 200) {
+                text.innerHTML="Account creation successful, redirecting...";
+                text.style="color:green";
+                let auth = 'Basic ' + btoa(user + ':' + pw);
+                localStorage.setItem("auth", auth);
+
+            }
         });
         document.getElementById("login").addEventListener("click", async function(event){
             let username = document.getElementById("username").value;
@@ -64,7 +70,17 @@
             const text = document.getElementById("responsetext");
             if (response.status === 401) {text.innerHTML="Account credentials invalid"; text.style="color:red"}
             if (response.status === 500) {text.innerHTML="Internal server error"; text.style="color:red";}
-            if (response.status === 200) {text.innerHTML="Login successful, redirecting..."; text.style="color:green"}
+            if (response.status === 200) {
+                text.innerHTML="Login successful, redirecting...";
+                text.style="color:green";
+                localStorage.setItem("auth", auth);
+                if (response.body == "admin") {
+                    window.location.href = "http://localhost:8090/admin.html";
+                }
+                else{
+                    window.location.href = "http://localhost:8090/webapp.html";
+                }
+            }
         });
     </script>
 </html>
