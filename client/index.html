@@ -40,37 +40,49 @@
     </body>
     <script>
         document.getElementById("newaccount").addEventListener("click", async function(event){
-            let user = document.getElementById("username").value;
-            let pw = document.getElementById("password").value;
-            const response = await fetch(url="http://localhost:8090/newuser", {
-                method: "POST", 
-                body: JSON.stringify({username: user, password: pw}),
-                headers: new Headers({"Content-Type": "application/json"})
-            });
-            const text = document.getElementById("responsetext")
-            if (response.status === 401) {text.innerHTML="Account already exists"; text.style="color:red";}
-            if (response.status === 400) {text.innerHTML="Not all fields complete"; text.style="color:red";}
-            if (response.status === 500) {text.innerHTML="Internal server error"; text.style="color:red";}
-            if (response.status === 200) {
-                text.innerHTML="Account creation successful, redirecting...";
-                text.style="color:green";
-                let auth = 'Basic ' + btoa(user + ':' + pw);
-                localStorage.setItem("auth", auth);
-
+            try {
+                let user = document.getElementById("username").value;
+                let pw = document.getElementById("password").value;
+                const response = await fetch(url="http://localhost:8090/newuser", {
+                    method: "POST", 
+                    body: JSON.stringify({username: user, password: pw}),
+                    headers: new Headers({"Content-Type": "application/json"})
+                });
+                const text = document.getElementById("responsetext");
+                if (response.status === 401) {text.innerHTML="Account already exists"; text.style="color:red";}
+                if (response.status === 400) {text.innerHTML="Not all fields complete"; text.style="color:red";}
+                if (response.status === 500) {text.innerHTML="Internal server error"; text.style="color:red";}
+                if (response.status === 200) {
+                    text.innerHTML="Account creation successful, redirecting...";
+                    text.style="color:green";
+                    let auth = 'Basic ' + btoa(user + ':' + pw);
+                    localStorage.setItem("auth", auth);
+                }
+            } catch (e) {
+                if (e instanceof TypeError) {
+                    const text = document.getElementById("responsetext");
+                    text.innerText = "Could not reach server. Please try again later.";
+                    text.style="color:red";
+                }
+                else {
+                    throw e;
+                }
             }
+            
         });
         document.getElementById("login").addEventListener("click", async function(event){
-            let username = document.getElementById("username").value;
-            let password = document.getElementById("password").value;
-            let auth = 'Basic ' + btoa(username + ':' + password);
-            const response = await fetch(url="http://localhost:8090/auth", {
-                method: "GET",
-                headers: new Headers({"Authorization": auth})
-            });
-            const text = document.getElementById("responsetext");
-            if (response.status === 401) {text.innerHTML="Account credentials invalid"; text.style="color:red"}
-            if (response.status === 500) {text.innerHTML="Internal server error"; text.style="color:red";}
-            if (response.status === 200) {
+            try {
+                let username = document.getElementById("username").value;
+                let password = document.getElementById("password").value;
+                let auth = 'Basic ' + btoa(username + ':' + password);
+                const response = await fetch(url="http://localhost:8090/auth", {
+                    method: "GET",
+                    headers: new Headers({"Authorization": auth})
+                });
+                const text = document.getElementById("responsetext");
+                if (response.status === 401) {text.innerHTML="Account credentials invalid"; text.style="color:red"}
+                if (response.status === 500) {text.innerHTML="Internal server error"; text.style="color:red";}
+                if (response.status === 200) {
                 text.innerHTML="Login successful, redirecting...";
                 text.style="color:green";
                 localStorage.setItem("auth", auth);
@@ -79,6 +91,16 @@
                 }
                 else{
                     window.location.href = "http://localhost:8090/webapp.html";
+                }
+                }
+            } catch (e) {
+                if (e instanceof TypeError) {
+                    const text = document.getElementById("responsetext");
+                    text.innerText = "Could not reach server. Please try again later.";
+                    text.style="color:red"; 
+                }
+                else {
+                    throw e;
                 }
             }
         });
