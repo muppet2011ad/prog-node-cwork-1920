@@ -64,56 +64,56 @@ document.getElementById("charsearch").onsubmit = async function (event) {
 }
 
 document.getElementById("newCharBtn").onclick = async function (event) {
-    document.getElementById("newCharErrorP").innerHTML = "";
+    document.getElementById("newCharErrorP").innerHTML = ""; // When we open the dialog, we don't want to inherit any old error messages
 }
 
-document.getElementById("newCharForm").onsubmit = async function (event) {
+document.getElementById("newCharForm").onsubmit = async function (event) { // Form handler for new character
     try {
-        event.preventDefault();
-        let form = document.getElementById("newCharForm");
-        let formData = new FormData(form);
+        event.preventDefault(); // Intercept default form method
+        let form = document.getElementById("newCharForm"); // Get the form in question
+        let formData = new FormData(form); // Grab the data out of the form
         let formJson = {};
-        let incomplete = false;
+        let incomplete = false; // This helps with a bit of input validation
         let text = document.getElementById("newCharErrorP");
         for (const [k, v] of formData.entries()) {
             formJson[k] = v;
             if (v == "") {
                 incomplete = true;
             }
-        }
-        if (incomplete) {
+        } // Parser to turn the formdata object into express-friendly json
+        if (incomplete) { // If the user hasn't filled out the form
             text.innerText = "Please complete the form.";
-            return;
+            return; // Let them know
         }
         const response = await fetch("http://localhost:8090/api/newchar", {
             method: "POST",
             headers: new Headers({"Authorization": auth, "Content-Type": "application/json"}),
             body: JSON.stringify(formJson)
-        });
-        if (response.status == 400) {
+        }); // Make the request to the server
+        if (response.status == 400) { // We shouldn't get here since we handle this validation client-side, but just in case we have this
             text.innerText = "Please complete the form.";
         }
-        else if (response.status == 500) {
+        else if (response.status == 500) { // If the server has an issue just let the client know
             text.innerText = "Internal Server Error";
         }
-        else if (response.status == 401) {
+        else if (response.status == 401) { // This should only occur if the auth property is not set in localStorage (i.e. the user is not logged in)
             text.innerText = "Request was unauthorised. Are you logged in?"
         }
-        else if (response.status == 200) {
+        else if (response.status == 200) { // If everything is ok then we can close the dialog and reset the form
             document.getElementById("newCharModalClose").click();
             form.reset();
             getAllChars();
         }
         else {
-            text.innerText = "Something went wrong"
+            text.innerText = "Something went wrong, got http " + response.status // Generic catch all
         }
     }
-    catch (e) {
-        if (e instanceof TypeError) {
+    catch (e) { // Error handling
+        if (e instanceof TypeError) { // NetworkErrors come under here (these fire when the server is unreachable)
             document.getElementById("newCharErrorP").innerText = "Could not reach server. Please try again later."
         }
         else{
-            throw e;
+            throw e; // If it's any other kind of error then throw it
         }
     }
 }
