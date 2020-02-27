@@ -30,6 +30,8 @@ function makeCharList(chars){
         let newnode = document.createElement("a"); // Make them a box
         newnode.setAttribute("href", "#");
         newnode.setAttribute("class", "list-group-item list-group-item-action flex-column align-items-start");
+        newnode.setAttribute("data-character", character.Id); // Stores character data with node so we can access it later
+        newnode.onclick = selectChar; // Bind a function to select a character to the node
         let heading = document.createElement("h5");
         heading.innerText = character.Name;
         newnode.appendChild(heading); // Fill the heading
@@ -42,6 +44,12 @@ function makeCharList(chars){
         newlist.appendChild(newnode); // Append the list entry to the whole list
     });
     results.appendChild(newlist); // Display the whole thing (it's better to construct it all then parent the whole thing for performance reasons)
+}
+
+async function selectChar(event) { // Event handler for a search result being clicked
+    let char = characters.find(x => x.Id == event.target.getAttribute("data-character")); // Find the character
+    Array.from(document.getElementById("charresults").children).forEach(result => result.classList.remove("active")); // Clear the active status of any other entries
+    event.target.classList.add("active"); // Set active on the current result, making it appear blue
 }
 
 document.getElementById("charsearch").onsubmit = async function (event) {
