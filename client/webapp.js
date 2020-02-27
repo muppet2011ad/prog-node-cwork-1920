@@ -1,4 +1,5 @@
 let characters;
+let selectedChar;
 
 let auth = localStorage.getItem("auth");
 
@@ -48,12 +49,19 @@ function makeCharList(chars){
 
 async function selectChar(event) { // Event handler for a search result being clicked
     event.preventDefault();
-    let char = characters.find(x => x.Id == event.target.getAttribute("data-character")); // Find the character
+    let target;
+    if (event.target.localName != "a"){
+        target = event.target.parentElement;
+    }
+    else {
+        target = event.target;
+    }
+    selectedChar = characters.find(x => x.Id == target.getAttribute("data-character")); // Find the character
     Array.from(document.getElementById("charresults").children).forEach(result => result.classList.remove("active")); // Clear the active status of any other entries
-    event.target.classList.add("active"); // Set active on the current result, making it appear blue
-    document.getElementById("charName").innerText = char.Name;
-    document.getElementById("charLevelClass").innerText = "Level " + char.Level + " " + char.Class;
-    document.getElementById("charRace").innerText = "Race: " + char.Race;
+    target.classList.add("active"); // Set active on the current result, making it appear blue
+    document.getElementById("charName").innerText = selectedChar.Name;
+    document.getElementById("charLevelClass").innerText = "Level " + selectedChar.Level + " " + selectedChar.Class;
+    document.getElementById("charRace").innerText = "Race: " + selectedChar.Race;
     document.getElementById("charPanel").classList.remove("d-none");
 }
 
