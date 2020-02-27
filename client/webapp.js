@@ -47,9 +47,14 @@ function makeCharList(chars){
 }
 
 async function selectChar(event) { // Event handler for a search result being clicked
+    event.preventDefault();
     let char = characters.find(x => x.Id == event.target.getAttribute("data-character")); // Find the character
     Array.from(document.getElementById("charresults").children).forEach(result => result.classList.remove("active")); // Clear the active status of any other entries
     event.target.classList.add("active"); // Set active on the current result, making it appear blue
+    document.getElementById("charName").innerText = char.Name;
+    document.getElementById("charLevelClass").innerText = "Level " + char.Level + " " + char.Class;
+    document.getElementById("charRace").innerText = "Race: " + char.Race;
+    document.getElementById("charPanel").classList.remove("d-none");
 }
 
 document.getElementById("charsearch").onsubmit = async function (event) {
