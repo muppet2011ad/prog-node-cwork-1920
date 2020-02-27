@@ -139,4 +139,29 @@ document.getElementById("newCharForm").onsubmit = async function (event) { // Fo
     }
 }
 
+document.getElementById("charConDelBtn").onclick = async function (event) {
+    try {
+        const response = await fetch ("http://localhost:8090/api/delchar", {
+            method: "POST",
+            headers: new Headers({"Authorization": auth, "Content-Type": "application/json"}),
+            body: JSON.stringify({Id: selectedChar.Id})
+        });
+        if (response.status == 401) {
+            alert("Deletion was unauthorised. Are you logged in?");
+        }
+        else if (response.status == 500) {
+            alert("Internal Server Error");
+        }
+        else if (response.status == 200) {
+            selectedChar = undefined;
+            document.getElementById("charPanel").classList.add("d-none");
+            getAllChars();
+        }
+    } catch (e) {
+        if (e instanceof TypeError){
+            alert("Could not reach server. Please try again later.")
+        }
+    }
+}
+
 getAllChars();

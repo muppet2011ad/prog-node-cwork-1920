@@ -69,10 +69,34 @@
                 <div class="col" id="charcol">
                     <h2>Character</h2>
                     <div class="border rounded d-none" id="charPanel">
-                        <div style="margin-left:25px; margin-top:15px">
-                            <h4 id="charName"></h4>
+                        <div style="margin-left:25px; margin-top:15px; margin-right:25px">
+                            <div class="d-flex flex-row">
+                                <div class="d-flex justify-content-start flex-fill">
+                                    <h4 id="charName"></h4>
+                                </div>
+                                <div class="d-flex justify-content-end flex-fill">
+                                    <button id="delCharBtn" class="btn btn-danger" data-toggle="modal" data-target="#charConfirmDelete">Delete</button>
+                                </div>
+                            </div>
                             <p id="charLevelClass"></p>
                             <p id="charRace"></p>
+                        </div>
+                        <div class="modal fade" id="charConfirmDelete" tabindex="-2" role="dialog">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header text-center">
+                                        <h4>Really Delete?</h4>
+                                        <button type="button" class="close" data-dismiss="modal" id="charConfirmDeleteClose1"><span>&times;</span></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p>Deleting the character is an irreversible action. Are you sure you want to proceed?</p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal" id="charConfirmDeleteClose2">Close</button>
+                                        <button type="button" class="btn btn-danger" data-dismiss="modal" id="charConDelBtn">Delete Character</button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
