@@ -130,6 +130,22 @@ app.post('/api/newchar', function (req, resp) { // Route to create a character
     }
 });
 
+app.post('/api/delchar', async function (req, resp) {
+    try {
+        let user = users.find(x => x.Name == req.auth.user);
+        if (!user.Chars.includes(req.body.Id)) { resp.status(401).send(); return;}
+        charindex = charindex.filter(x => x.Id != req.body.Id);
+        fs.writeFile('./data/charindex.json', JSON.stringify(charindex), 'utf8', () => {});
+        user.Chars = user.Chars.filter(x => x.Id != req.body.Id);
+        fs.writeFile('./data/users.json', JSON.stringify(users), 'utf8', () => {});
+        fs.unlink('./data/chars/' + req.body.Id + '.json', () => {});
+        resp.status(200).send();
+    } catch (e) {
+        console.log(e);
+        resp.status(500).send();
+    }
+});
+
 app.post('/api/editchar', async function (req, resp) { // Route to edit character
     try {
         let user = users.find(x => x.Name == req.auth.user); // Find the user who's making the request
