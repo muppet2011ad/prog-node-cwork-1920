@@ -136,7 +136,7 @@ app.post('/api/delchar', async function (req, resp) {
         if (!user.Chars.includes(req.body.Id)) { resp.status(401).send(); return;}
         charindex = charindex.filter(x => x.Id != req.body.Id);
         fs.writeFile('./data/charindex.json', JSON.stringify(charindex), 'utf8', () => {});
-        user.Chars = user.Chars.filter(x => x.Id != req.body.Id);
+        user.Chars = user.Chars.filter(x => x != req.body.Id);
         fs.writeFile('./data/users.json', JSON.stringify(users), 'utf8', () => {});
         fs.unlink('./data/chars/' + req.body.Id + '.json', () => {});
         resp.status(200).send();
