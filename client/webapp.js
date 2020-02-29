@@ -62,6 +62,30 @@ async function selectChar(event) { // Event handler for a search result being cl
     document.getElementById("charName").innerText = selectedChar.Name;
     document.getElementById("charLevelClass").innerText = "Level " + selectedChar.Level + " " + selectedChar.Class;
     document.getElementById("charRace").innerText = "Race: " + selectedChar.Race;
+    // Code to display spells
+    let response = await fetch ("http://localhost:8090/api/spells?ids=" + JSON.stringify(selectedChar.Spells), {
+        method: "GET",
+        headers: new Headers({"Authorization": auth})
+    });
+    let spells = await response.json();
+    let spellList = document.getElementById("spellList");
+    spellList.innerHTML = ""
+    for (let i = 1; i < 10; i ++) { // Iterate through all possible roll20 spell levels
+        let lvlXSpells = spells.filter(x => x.Level == i);
+        if (lvlXSpells.length == 0) {continue;}
+        let levelTitle = document.createElement("button");
+        levelTitle.setAttribute("class", "list-group-item list-group-item-action flex-column align-items-start list-group-item-secondary");
+        let levelText = document.createElement("h6");
+        levelText.innerText = "Level " + i + " Spells";
+        levelTitle.appendChild(levelText);
+        spellList.appendChild(levelTitle);
+        lvlXSpells.forEach(spell => {
+            let newnode = document.createElement("button");
+            newnode.setAttribute("class", "list-group-item list-group-item-action flex-column align-items-start");
+            newnode.innerText = spell.Name;
+            spellList.appendChild(newnode);
+        });
+    }
     document.getElementById("charPanel").classList.remove("d-none");
 }
 
@@ -70,7 +94,7 @@ document.getElementById("charsearch").onsubmit = async function (event) {
         event.preventDefault(); // We don't want to actually GET since that switches page
         const response = await fetch("http://localhost:8090/api/characters?name=" + document.getElementById("name").value, {
             method: "GET",
-            headers: new Headers({"Authorization": localStorage.getItem("auth")}),
+            headers: new Headers({"Authorization": auth}),
         }); // Complete the user's search
         characters = await response.json();
         makeCharList(characters); // Display it
