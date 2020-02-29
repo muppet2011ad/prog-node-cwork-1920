@@ -83,10 +83,28 @@ async function selectChar(event) { // Event handler for a search result being cl
             let newnode = document.createElement("button");
             newnode.setAttribute("class", "list-group-item list-group-item-action flex-column align-items-start");
             newnode.innerText = spell.Name;
+            newnode.setAttribute("data-name", spell.Name);
+            newnode.setAttribute("data-level", spell.Level);
+            newnode.setAttribute("data-school", spell.School);
+            newnode.setAttribute("data-components", spell.Components);
+            newnode.setAttribute("data-damage", spell.Damage);
+            newnode.setAttribute("data-desc", spell.Desc);
+            newnode.setAttribute("data-toggle","modal");
+            newnode.setAttribute("data-target","#spellInfoModal")
+            newnode.onclick = readySpellModal;
             spellList.appendChild(newnode);
         });
     }
     document.getElementById("charPanel").classList.remove("d-none");
+}
+
+async function readySpellModal (event) {
+    document.getElementById("spellInfoName").innerText = event.target.getAttribute("data-name");
+    document.getElementById("spellInfoLevel").innerText = "Level: " + event.target.getAttribute("data-level");
+    document.getElementById("spellInfoSchool").innerText = "School: " + event.target.getAttribute("data-school");
+    document.getElementById("spellInfoComponents").innerText = "Components: " + event.target.getAttribute("data-components");
+    document.getElementById("spellInfoDamage").innerText = "Damage: " + event.target.getAttribute("data-damage");
+    document.getElementById("spellInfoDesc").innerText = event.target.getAttribute("data-desc");
 }
 
 document.getElementById("charsearch").onsubmit = async function (event) {
