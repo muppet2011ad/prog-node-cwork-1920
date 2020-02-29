@@ -48,57 +48,67 @@ function makeCharList(chars){
 }
 
 async function selectChar(event) { // Event handler for a search result being clicked
-    event.preventDefault();
-    let target;
-    if (event.target.localName != "a"){
-        target = event.target.parentElement;
+    try {
+        event.preventDefault();
+        let target;
+        if (event.target.localName != "a"){
+            target = event.target.parentElement;
+        }
+        else {
+            target = event.target;
+        }
+        selectedChar = characters.find(x => x.Id == target.getAttribute("data-character")); // Find the character
+        Array.from(document.getElementById("charresults").children).forEach(result => result.classList.remove("active")); // Clear the active status of any other entries
+        target.classList.add("active"); // Set active on the current result, making it appear blue
+        document.getElementById("charName").innerText = selectedChar.Name;
+        document.getElementById("charLevelClass").innerText = "Level " + selectedChar.Level + " " + selectedChar.Class;
+        document.getElementById("charRace").innerText = "Race: " + selectedChar.Race;
+        // Code to display spells
+        let response = await fetch ("http://localhost:8090/api/spells?ids=" + JSON.stringify(selectedChar.Spells), {
+            method: "GET",
+            headers: new Headers({"Authorization": auth})
+        }); // Get the character's spells from the server
+        let spells = await response.json(); // Parse to json
+        let spellList = document.getElementById("spellList"); // Get the element on the page that we're using to display them
+        spellList.innerHTML = "" // Clear it of any existing spells
+        for (let i = 1; i < 10; i ++) { // Iterate through all possible d20 spell levels
+            let lvlXSpells = spells.filter(x => x.Level == i); // Filter the spells of this level
+            if (lvlXSpells.length == 0) {continue;} // If there aren't any, move on to the next level
+            let levelTitle = document.createElement("button");
+            levelTitle.setAttribute("class", "list-group-item list-group-item-action flex-column align-items-start list-group-item-secondary");
+            let levelText = document.createElement("h6");
+            levelText.innerText = "Level " + i + " Spells";
+            levelTitle.appendChild(levelText);
+            spellList.appendChild(levelTitle); // Create the title for the spell level
+            lvlXSpells.forEach(spell => { // For every spell the character has of this level
+                let newnode = document.createElement("button");
+                newnode.setAttribute("class", "list-group-item list-group-item-action flex-column align-items-start");
+                newnode.innerText = spell.Name;
+                newnode.setAttribute("data-id", spell.Id);
+                newnode.setAttribute("data-name", spell.Name);
+                newnode.setAttribute("data-level", spell.Level);
+                newnode.setAttribute("data-school", spell.School);
+                newnode.setAttribute("data-components", spell.Components);
+                newnode.setAttribute("data-damage", spell.Damage);
+                newnode.setAttribute("data-desc", spell.Desc);
+                newnode.setAttribute("data-toggle","modal");
+                newnode.setAttribute("data-target","#spellInfoModal") // Set up an element to display it
+                newnode.onclick = readySpellModal; // Bind it to the modal
+                spellList.appendChild(newnode); // And display it
+            });
+        }
+        document.getElementById("charPanel").classList.remove("d-none"); // Unhide the character panel
+    } catch (e) {
+        if (e instanceof TypeError){
+            alert("Could not reach server. Please try again later.");
+        }
+        else {
+            throw e;
+        }
     }
-    else {
-        target = event.target;
-    }
-    selectedChar = characters.find(x => x.Id == target.getAttribute("data-character")); // Find the character
-    Array.from(document.getElementById("charresults").children).forEach(result => result.classList.remove("active")); // Clear the active status of any other entries
-    target.classList.add("active"); // Set active on the current result, making it appear blue
-    document.getElementById("charName").innerText = selectedChar.Name;
-    document.getElementById("charLevelClass").innerText = "Level " + selectedChar.Level + " " + selectedChar.Class;
-    document.getElementById("charRace").innerText = "Race: " + selectedChar.Race;
-    // Code to display spells
-    let response = await fetch ("http://localhost:8090/api/spells?ids=" + JSON.stringify(selectedChar.Spells), {
-        method: "GET",
-        headers: new Headers({"Authorization": auth})
-    });
-    let spells = await response.json();
-    let spellList = document.getElementById("spellList");
-    spellList.innerHTML = ""
-    for (let i = 1; i < 10; i ++) { // Iterate through all possible roll20 spell levels
-        let lvlXSpells = spells.filter(x => x.Level == i);
-        if (lvlXSpells.length == 0) {continue;}
-        let levelTitle = document.createElement("button");
-        levelTitle.setAttribute("class", "list-group-item list-group-item-action flex-column align-items-start list-group-item-secondary");
-        let levelText = document.createElement("h6");
-        levelText.innerText = "Level " + i + " Spells";
-        levelTitle.appendChild(levelText);
-        spellList.appendChild(levelTitle);
-        lvlXSpells.forEach(spell => {
-            let newnode = document.createElement("button");
-            newnode.setAttribute("class", "list-group-item list-group-item-action flex-column align-items-start");
-            newnode.innerText = spell.Name;
-            newnode.setAttribute("data-name", spell.Name);
-            newnode.setAttribute("data-level", spell.Level);
-            newnode.setAttribute("data-school", spell.School);
-            newnode.setAttribute("data-components", spell.Components);
-            newnode.setAttribute("data-damage", spell.Damage);
-            newnode.setAttribute("data-desc", spell.Desc);
-            newnode.setAttribute("data-toggle","modal");
-            newnode.setAttribute("data-target","#spellInfoModal")
-            newnode.onclick = readySpellModal;
-            spellList.appendChild(newnode);
-        });
-    }
-    document.getElementById("charPanel").classList.remove("d-none");
 }
 
-async function readySpellModal (event) {
+async function readySpellModal (event) { // Event handler to fill in the details of the spell to the modal before we display it
     document.getElementById("spellInfoName").innerText = event.target.getAttribute("data-name");
     document.getElementById("spellInfoLevel").innerText = "Level: " + event.target.getAttribute("data-level");
     document.getElementById("spellInfoSchool").innerText = "School: " + event.target.getAttribute("data-school");
