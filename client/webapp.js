@@ -181,6 +181,47 @@ document.getElementById("newCharForm").onsubmit = async function (event) { // Fo
     }
 }
 
+document.getElementById("editCharForm").onsubmit = async function (event) { // Form handler for the edit char form
+    event.preventDefault(); // Stop the default form response
+    let form = document.getElementById("editCharForm");
+    let formData = new FormData(form); // Get the data
+    let formJson = {};
+    for (const [k,v] of formData.entries()) { // This should parse it into json,
+        if (v != selectedChar[k]) { // Only include elements that have been changed - resubmitting unchanged elements wouldn't break anything but it is wasteful
+            formJson[k] = v;
+        }
+    }
+    formJson["Id"] = selectedChar.Id; // Include the id so the server knows what character to edit
+    const response = await fetch("http://localhost:8090/api/editchar", {
+            method: "POST",
+            headers: new Headers({"Authorization": auth, "Content-Type": "application/json"}),
+            body: JSON.stringify(formJson)
+        }); // Make the request to the server
+    let text = document.getElementById("editCharErrorP");
+    if (response.status == 400) { // This should only happen if the same user is logged in on two machines and starts deleting stuff
+            text.innerText = "Could not find character - it may have been deleted. Try reloading the page.";
+        }
+        else if (response.status == 500) { // If the server has an issue just let the client know
+            text.innerText = "Internal Server Error";
+        }
+        else if (response.status == 401) { // This should only occur if the auth property is not set in localStorage (i.e. the user is not logged in)
+            text.innerText = "Request was unauthorised. Are you logged in?"
+        }
+        else if (response.status == 200) { // If everything is ok then we can close the dialog, reset the form, and reload the character's info
+            document.getElementById("editCharModalClose").click();
+            form.reset();
+            await getAllChars();
+            Array.from(document.getElementById("charresults").children).forEach(char => {
+                if (char.getAttribute("data-character") == selectedChar.Id){
+                    char.click(); // We simulate a click to get the char info again, just in case someone else made a change we need to fetch
+                }
+            })
+        }
+        else {
+            text.innerText = "Something went wrong, got http " + response.status // Generic catch all
+        }
+}
+
 document.getElementById("charConDelBtn").onclick = async function (event) {
     try {
         const response = await fetch ("http://localhost:8090/api/delchar", {
@@ -204,6 +245,14 @@ document.getElementById("charConDelBtn").onclick = async function (event) {
             alert("Could not reach server. Please try again later.")
         }
     }
+}
+
+document.getElementById("editCharBtn").onclick = async function (event) { // Event handler to populate editing form when it's needed
+    document.getElementById("editCharTitle").innerText = "Editing " + selectedChar.Name;
+    document.getElementById("editCharName").value = selectedChar.Name;
+    document.getElementById("editCharLvl").value = selectedChar.Level;
+    document.getElementById("editCharClass").value = selectedChar.Class;
+    document.getElementById("editCharRace").value = selectedChar.Race;
 }
 
 getAllChars();
