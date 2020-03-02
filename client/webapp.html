@@ -81,7 +81,13 @@
                             </div>
                             <p id="charLevelClass"></p>
                             <p id="charRace"></p>
-                            <h5>Spells:</h5>
+                            <div class="d-flex flex-row">
+                                <div class="d-flex justify-content-start flex-fill"><h5>Spells:</h5></div>
+                                <div class="d-flex justify-content-end flex-fill">
+                                    <button id="addSpellBtn" class="btn btn-success" style="margin-right:5px" data-target="#addSpellModal" data-toggle="modal">Add</button>
+                                    <button id="removeSpellBtn" class="btn btn-danger">Remove</button>
+                                </div>
+                            </div>
                             <div id="spellList" class="overflow-auto list-group" style="margin-left:25px; margin-top:15px; margin-right:25px; margin-bottom: 15px; max-height: 50vh"></div>
                         </div>
                         <div class="modal fade" id="charConfirmDelete" tabindex="-2" role="dialog">
@@ -153,6 +159,41 @@
                                             </div>                                        
                                         </div>
                                     </form>  
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal fade" id="addSpellModal" tabindex="-5" role="dialog">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header text-center">
+                                        <h4 class="modal-title font-weight-bold" id="addSpellTitle">Add Spells</h4>
+                                        <button type="button" class="close" data-dismiss="modal" id="editCharModalClose"><span>&times;</span></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form id="spellSearchForm">
+                                            <div class="container">
+                                                <div class="row">
+                                                    <div class="col">
+                                                        <label>Spell Name</label>
+                                                        <input id="addSpellName" class="form-control" type="text" name="name">
+                                                        <label>Level</label>
+                                                        <input id="addSpellLvl" class="form-control" type="number" name="level">
+                                                    </div>
+                                                    <div class="col">
+                                                        <label>School</label>
+                                                        <input id="addSpellSchool" class="form-control" type="text" name="school">
+                                                        <label>Damage</label>
+                                                        <input id="addSpellDamage" class="form-control" type="text" name="damage">
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col">
+                                                        <button class="btn btn-primary" type="submit" style="margin-top:5px">Search</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
                         </div>
