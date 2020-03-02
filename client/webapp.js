@@ -265,4 +265,53 @@ document.getElementById("editCharBtn").onclick = async function (event) { // Eve
     document.getElementById("editCharRace").value = selectedChar.Race;
 }
 
+document.getElementById("spellSearchForm").onsubmit = async function (event) {
+    try {
+        event.preventDefault();
+        let form = event.target;
+        let formData = new FormData(form);
+        let queryString = new URLSearchParams(formData).toString();
+        const response = await fetch("http://localhost:8090/api/spells?" + queryString, {
+            method: "GET",
+            headers: new Headers({"Authorization": auth})
+        });
+        if (response.status == 500) {
+            alert("Internal Server Error");
+        }
+        else if (response.status == 200){
+            let spells = await response.json();
+            let resultsDiv = document.getElementById("addSpellResults");
+            resultsDiv.innerHTML = "";
+            spells.forEach(spell => {
+                let card = document.createElement("div");
+                card.classList.add("card");
+                let header = document.createElement("div")
+                header.classList.add("card-header");
+                let h2 = document.createElement("h2");
+                let mainButton = document.createElement("button");
+                mainButton.setAttribute("class", "btn btn-link");
+                mainButton.setAttribute("type", "button");
+                mainButton.setAttribute("data-toggle", "collapse");
+                mainButton.setAttribute("data-target", "spell-" + spell.Id);
+                mainButton.innerText = spell.Name;
+                h2.appendChild(mainButton);
+                header.appendChild(h2);
+                card.appendChild(header);
+                
+                resultsDiv.appendChild(card);
+            });
+        }
+        else {
+            alert("HTTP error " + response.status);
+        }
+    } catch (e) {
+        if (e instanceof TypeError) {
+            alert("Could not reach server. Please try again later.");
+        }
+        else {
+            throw e;
+        }
+    }
+}
+
 getAllChars();

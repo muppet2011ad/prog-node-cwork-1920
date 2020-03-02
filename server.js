@@ -208,16 +208,16 @@ app.get('/api/spells', function (req, resp) { // Function to get spells
                 let ids = JSON.parse(req.query.ids);
                 validspells = validspells.filter(x => ids.includes(x.Id)); // Give them the corresponding spells
             }
-            if (req.query.name != undefined){
+            if (req.query.name != undefined && req.query.name != ""){
                 validspells = validspells.filter(x => x.Name.includes(req.query.name));
             }
-            if (req.query.level != undefined){
+            if (req.query.level != undefined && req.query.level){
                 validspells = validspells.filter(x => x.Level === parseInt(req.query.level));
             }
-            if (req.query.school != undefined){
+            if (req.query.school != undefined && req.query.school != ""){
                 validspells = validspells.filter(x => x.School === req.query.school);
             }
-            if (req.query.damage != undefined){
+            if (req.query.damage != undefined && req.query.damage != ""){
                 validspells = validspells.filter(x => x.Damage === req.query.damage);
             } // If they specify any other filters, use them
             resp.send(validspells); // Send the spells that might the criteria
