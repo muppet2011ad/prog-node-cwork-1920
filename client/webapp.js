@@ -117,6 +117,52 @@ async function readySpellModal (event) { // Event handler to fill in the details
     document.getElementById("spellInfoDesc").innerText = event.target.getAttribute("data-desc");
 }
 
+async function addSpell (event) {
+    try {
+        let spell = event.target.getAttribute("data-spell");
+        let bodyJson = {"Spells": [[spell],[]], "Id": selectedChar.Id};
+        const response = await fetch("http://localhost:8090/api/editchar", {
+            method: "POST",
+            headers: new Headers({"Authorization": auth, "Content-Type": "application/json"}),
+            body: JSON.stringify(bodyJson)
+        });
+        if (response.status == 200) {
+            const charResp = await fetch ("http://localhost:8090/api/characters?id=" + selectedChar.Id, {
+                method: "GET",
+                headers: new Headers({"Authorization": auth})
+            });
+            let json = await charResp.json();
+            let newSpells = json[0].Spells;
+            characters.find(x => x.Id == selectedChar.Id).Spells = newSpells;
+            document.getElementById("addSpellModalClose").click();
+            Array.from(document.getElementById("charresults").children).forEach(char => {
+                if (char.getAttribute("data-character") == selectedChar.Id){
+                    char.click(); // We simulate a click to get the char info again, just in case someone else made a change we need to fetch
+                }
+            });
+        }
+        else if (response.status == 400) {
+            alert("Somthing went wrong trying to edit the character. Try reloading the page.")
+        }
+        else if (response.status == 401) {
+            alert("Authorisation failed: are you logged in?");
+        }
+        else if (response.status == 500) {
+            alert("Internal Server Error");
+        }
+        else {
+            alert("Something went wrong. HTTP: " + response.status);
+        }
+    } catch (e) {
+        if (e instanceof TypeError) {
+            alert("Could not reach the server. Please try again later.");
+        }
+        else{
+            throw e;
+        }
+    }
+}
+
 document.getElementById("charsearch").onsubmit = async function (event) {
     try {
         event.preventDefault(); // We don't want to actually GET since that switches page
@@ -282,24 +328,24 @@ document.getElementById("spellSearchForm").onsubmit = async function (event) {
             let spells = await response.json();
             let resultsDiv = document.getElementById("addSpellResults");
             resultsDiv.innerHTML = "";
+            spells = spells.filter(x => !selectedChar.Spells.includes(x.Id));
             spells.forEach(spell => {
-                let card = document.createElement("div");
-                card.classList.add("card");
-                let header = document.createElement("div")
-                header.classList.add("card-header");
-                let h2 = document.createElement("h2");
-                let mainButton = document.createElement("button");
-                mainButton.setAttribute("class", "btn btn-link");
-                mainButton.setAttribute("type", "button");
-                mainButton.setAttribute("data-toggle", "collapse");
-                mainButton.setAttribute("data-target", "spell-" + spell.Id);
-                mainButton.innerText = spell.Name;
-                h2.appendChild(mainButton);
-                header.appendChild(h2);
-                card.appendChild(header);
-                
-                resultsDiv.appendChild(card);
+                let template = document.getElementById("addSpellSearchResult");
+                let clone = template.content.cloneNode(true);
+                let button = clone.querySelector("button");
+                button.innerText = spell.Name;
+                button.setAttribute("data-target","#spell-" + spell.Id);
+                clone.querySelector(".resultLevel").innerText = "Level: " + spell.Level;
+                clone.querySelector(".resultDamage").innerText = "Damage: " + spell.Damage;
+                clone.querySelector(".resultSchool").innerText = "School: " + spell.School;
+                clone.querySelector(".resultComponents").innerText = "Components: " + spell.Components;
+                clone.querySelector(".resultDesc").innerText = spell.Desc;
+                clone.querySelector(".collapse").setAttribute("id", "spell-" + spell.Id);
+                clone.querySelector(".btn-success").setAttribute("data-spell", spell.Id);
+                clone.querySelector(".btn-success").onclick = addSpell;
+                resultsDiv.appendChild(clone);
             });
+            document.getElementById("addSpellResultsHeader").innerText = "Results:"
         }
         else {
             alert("HTTP error " + response.status);
