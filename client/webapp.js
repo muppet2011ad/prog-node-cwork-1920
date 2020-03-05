@@ -1,5 +1,6 @@
 let characters;
 let selectedChar;
+let charSpells;
 
 let auth = localStorage.getItem("auth");
 
@@ -21,7 +22,7 @@ async function getAllChars(){ // Setup function
     }
 }
 
-function makeCharList(chars){
+async function makeCharList(chars){
     let results = document.querySelector('#results'); // Find where we intend to display this
     let old = document.getElementById("charresults"); // Find what we already had displayed there
     if (old != undefined) { old.remove(); } // If it exists, purge it
@@ -68,11 +69,11 @@ async function selectChar(event) { // Event handler for a search result being cl
             method: "GET",
             headers: new Headers({"Authorization": auth})
         }); // Get the character's spells from the server
-        let spells = await response.json(); // Parse to json
+        charSpells = await response.json(); // Parse to json
         let spellList = document.getElementById("spellList"); // Get the element on the page that we're using to display them
         spellList.innerHTML = "" // Clear it of any existing spells
         for (let i = 1; i < 10; i ++) { // Iterate through all possible d20 spell levels
-            let lvlXSpells = spells.filter(x => x.Level == i); // Filter the spells of this level
+            let lvlXSpells = charSpells.filter(x => x.Level == i); // Filter the spells of this level
             if (lvlXSpells.length == 0) {continue;} // If there aren't any, move on to the next level
             let levelTitle = document.createElement("button");
             levelTitle.setAttribute("class", "list-group-item list-group-item-action flex-column align-items-start list-group-item-secondary");
@@ -158,6 +159,52 @@ async function addSpell (event) {
             alert("Could not reach the server. Please try again later.");
         }
         else{
+            throw e;
+        }
+    }
+}
+
+async function removeSpell(event) {
+    try {
+        let spell = event.target.getAttribute("data-id");
+        const response = await fetch("http://localhost:8090/api/editchar", {
+            method: "POST",
+            headers: new Headers({"Authorization": auth, "Content-Type": "application/json"}),
+            body: JSON.stringify({"Spells": [[],[spell]], "Id": selectedChar.Id})
+        });
+        if (response.status == 200) {
+            let spellList = document.getElementById("spellList");
+            Array.from(spellList.children).forEach(x => {
+                if (x.getAttribute("data-id") == spell){
+                    spellList.removeChild(x);
+                }
+            });
+            let spellData = charSpells.find(x => x.Id == spell);
+            selectedChar.Spells = selectedChar.Spells.filter(x => x.Id != spellData.Id);
+            let level = spellData.Level;
+            charSpells = charSpells.filter(x => x != spellData);
+            if (charSpells.filter(x => x.Level == level).length == 0){
+                spellList.removeChild(Array.from(spellList.children).find(x => x.innerText == "Level " + level + " Spells"));
+            }
+            document.getElementById("removeSpellModalClose").click()
+        }
+        else if (response.status == 400) {
+            alert("Somthing went wrong trying to edit the character. Try reloading the page.")
+        }
+        else if (response.status == 401) {
+            alert("Authorisation failed: are you logged in?");
+        }
+        else if (response.status == 500) {
+            alert("Internal Server Error");
+        }
+        else {
+            alert("Something went wrong. HTTP: " + response.status);
+        }
+    } catch (e) {
+        if (e instanceof TypeError) {
+            alert("Could not reach the server. Please try again later.");
+        }
+        else {
             throw e;
         }
     }
@@ -357,6 +404,39 @@ document.getElementById("spellSearchForm").onsubmit = async function (event) {
         else {
             throw e;
         }
+    }
+}
+
+document.getElementById("removeSpellBtn").onclick = async function (event) {
+    let spellList = document.getElementById("removeSpellList");
+    spellList.innerHTML = "";
+    for (let i = 1; i < 10; i ++) { // Iterate through all possible d20 spell levels
+        let lvlXSpells = charSpells.filter(x => x.Level == i); // Filter the spells of this level
+        if (lvlXSpells.length == 0) {continue;} // If there aren't any, move on to the next level
+        let levelTitle = document.createElement("button");
+        levelTitle.setAttribute("class", "list-group-item list-group-item-action flex-column align-items-start list-group-item-secondary");
+        let levelText = document.createElement("h6");
+        levelText.innerText = "Level " + i + " Spells";
+        levelTitle.appendChild(levelText);
+        spellList.appendChild(levelTitle); // Create the title for the spell level
+        lvlXSpells.forEach(spell => { // For every spell the character has of this level
+            let newnode = document.createElement("div");
+            newnode.setAttribute("class", "list-group-item list-group-item-action flex-column align-items-start");
+            let flex = document.createElement("div");
+            flex.setAttribute("class", "d-flex justify-content-between align-items-center");
+            let text = document.createElement("div");
+            text.setAttribute("class", "justify-content-start");
+            text.innerText = spell.Name;
+            let removeBtn = document.createElement("button");
+            removeBtn.setAttribute("class", "btn btn-danger justify-content-end");
+            removeBtn.innerText = "Remove";
+            removeBtn.setAttribute("data-id", spell.Id);
+            removeBtn.onclick = removeSpell;
+            flex.appendChild(text);
+            flex.appendChild(removeBtn);
+            newnode.append(flex);
+            spellList.appendChild(newnode); // And display it
+        });
     }
 }
 
