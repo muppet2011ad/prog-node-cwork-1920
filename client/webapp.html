@@ -85,7 +85,7 @@
                                 <div class="d-flex justify-content-start flex-fill"><h5>Spells:</h5></div>
                                 <div class="d-flex justify-content-end flex-fill">
                                     <button id="addSpellBtn" class="btn btn-success" style="margin-right:5px" data-target="#addSpellModal" data-toggle="modal">Add</button>
-                                    <button id="removeSpellBtn" class="btn btn-danger">Remove</button>
+                                    <button id="removeSpellBtn" class="btn btn-danger" data-toggle="modal" data-target="#removeSpellModal">Remove</button>
                                 </div>
                             </div>
                             <div id="spellList" class="overflow-auto list-group" style="margin-left:25px; margin-top:15px; margin-right:25px; margin-bottom: 15px; max-height: 50vh"></div>
@@ -223,6 +223,20 @@
                                             </div>
                                         </div>
                                     </template>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal fade" id="removeSpellModal" tabindex="-6" role="dialog">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header text-center">
+                                        <h4 class="modal-title font-weight-bold">Delete Spells</h4>
+                                        <button type="button" class="close" data-dismiss="modal" id="removeSpellModalClose"><span>&times;</span></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p>Select a spell to remove:</p>
+                                        <div id="removeSpellList" class="overflow-auto list-group"></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
