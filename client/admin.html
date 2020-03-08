@@ -10,5 +10,57 @@
         <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
         <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
     </head>
+    <body>
+        <div class="jumbotron text-center" style="margin-bottom:0">
+            <h1>d20 Spell Manager</h1>
+            <p>Admin Console (Spell Manager)</p>
+        </div>
+        <div class="container" style="margin-top:25px">
+            <div class="row">
+                <div class="col" id="delSpellCol">
 
+                </div>
+                <div class="col" id="addSpellCol">
+                    <h2>Add Spells</h2>
+                    <div class="border rounded" id="addSpellForm">
+                        <form id="addSpellForm">
+                            <div class="container" style="margin-top:25px; margin-right: 10px; margin-left: 10px; margin-bottom: 25px">
+                                <div class="row">
+                                    <div class="col">
+                                        <label>Spell Name:</label><br>
+                                        <input type="text" placeholder="Enter spell name..." name="Name" required="true">
+                                    </div>
+                                    <div class="col">
+                                        <label>School:</label><br>
+                                        <input type="text" placeholder="Enter spell school..." name="School" required="true">
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col">
+                                        <label>Level:</label><br>
+                                        <input type="number" min="1" max="20" name="Level" required="true">
+                                    </div>
+                                    <div class="col">
+                                        <label>Components:</label><br>
+                                        <input type="text" placeholder="Enter spell components..." name="Components" required="true">
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col">
+                                        <label>Damage:</label><br>
+                                        <input type="text" placeholder="Enter spell damage..." name="Damage">
+                                    </div>
+                                    <div class="col">
+                                        <label>Spell Description</label><br>
+                                        <textarea name="Desc"></textarea>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-success">Create Spell</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
 </html>
