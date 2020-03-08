@@ -87,6 +87,15 @@ app.post('/api/admin/addspells', function (req, resp) { // Route to add multiple
 app.post('/api/admin/delspell', function (req, resp){ // Route to delete a spell
     try {
         if (req.query.id != undefined){ // If the spell given isn't undefined
+            let files = charindex.map(x => "./data/chars/" + x.Id + ".json");
+            nodeasync.map(files, readCharacter, async function (err, characters) {
+                let jsonchars = characters.map(x => JSON.parse(x));
+                jsonchars.forEach(char => {
+                    char.Spells = char.Spells.filter(x => x != req.query.id);
+                    let charjson = JSON.stringify(char);
+                    fs.writeFile("./data/chars/" + char.Id + ".json", charjson, "utf8", () => {});
+                });
+            });
             spells = spells.filter(x => x.Id != req.query.id); // Remove the spell in question
             let json = JSON.stringify(spells);
             fs.writeFile('./data/spells.json', json, 'utf8', () => {}); // Write to file
