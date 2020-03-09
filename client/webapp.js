@@ -180,7 +180,7 @@ async function removeSpell(event) {
                 }
             });
             let spellData = charSpells.find(x => x.Id == spell);
-            selectedChar.Spells = selectedChar.Spells.filter(x => x.Id != spellData.Id);
+            selectedChar.Spells = selectedChar.Spells.filter(x => x != spellData.Id);
             let level = spellData.Level;
             charSpells = charSpells.filter(x => x != spellData);
             if (charSpells.filter(x => x.Level == level).length == 0){
