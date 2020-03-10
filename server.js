@@ -9,6 +9,16 @@ app.use(express.static('client')); // Use static so we can serve pages
 app.use(bodyParser.urlencoded({ extended: false })); // Use bodyparser for post requests
 app.use(bodyParser.json()); // Lets us parse json
 
+if (!fs.existsSync("./data/charindex.json")) {
+    fs.writeFileSync("./data/charindex.json", "[]");
+}
+if (!fs.existsSync("./data/spells.json")) {
+    fs.writeFileSync("./data/spells.json", "[]");
+}
+if (!fs.existsSync("./data/users.json")) {
+    fs.writeFileSync("./data/users.json", "[]")
+}
+
 var users = require('./data/users.json'); // Load user data
 app.use('/auth', basicAuth({authorizer: Authorise, authorizeAsync: true}));
 app.use('/api', basicAuth({authorizer: Authorise, authorizeAsync: true})); // Everything by default requires authorisation
