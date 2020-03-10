@@ -5,7 +5,7 @@ module.exports = {
         "node": true,
         "browser": true
     },
-    "extends": "standard",
+    "extends": "semistandard",
     "globals": {
         "Atomics": "readonly",
         "SharedArrayBuffer": "readonly"
@@ -14,6 +14,7 @@ module.exports = {
         "ecmaVersion": 2018
     },
     "rules": {
-        "no-unused-vars": "off"
+        "no-unused-vars": "off",
+        "brace-style": "off"
     }
 };
