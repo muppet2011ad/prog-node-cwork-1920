@@ -72,7 +72,7 @@ async function selectChar(event) { // Event handler for a search result being cl
         charSpells = await response.json(); // Parse to json
         let spellList = document.getElementById("spellList"); // Get the element on the page that we're using to display them
         spellList.innerHTML = "" // Clear it of any existing spells
-        for (let i = 1; i < 10; i ++) { // Iterate through all possible d20 spell levels
+        for (let i = 0; i < 10; i ++) { // Iterate through all possible d20 spell levels
             let lvlXSpells = charSpells.filter(x => x.Level == i); // Filter the spells of this level
             if (lvlXSpells.length == 0) {continue;} // If there aren't any, move on to the next level
             let levelTitle = document.createElement("button");
@@ -410,7 +410,7 @@ document.getElementById("spellSearchForm").onsubmit = async function (event) {
 document.getElementById("removeSpellBtn").onclick = async function (event) {
     let spellList = document.getElementById("removeSpellList");
     spellList.innerHTML = "";
-    for (let i = 1; i < 10; i ++) { // Iterate through all possible d20 spell levels
+    for (let i = 0; i < 10; i ++) { // Iterate through all possible d20 spell levels
         let lvlXSpells = charSpells.filter(x => x.Level == i); // Filter the spells of this level
         if (lvlXSpells.length == 0) {continue;} // If there aren't any, move on to the next level
         let levelTitle = document.createElement("button");
