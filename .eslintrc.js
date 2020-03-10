@@ -5,7 +5,7 @@ module.exports = {
         "node": true,
         "browser": true
     },
-    "extends": "eslint:recommended",
+    "extends": "standard",
     "globals": {
         "Atomics": "readonly",
         "SharedArrayBuffer": "readonly"
