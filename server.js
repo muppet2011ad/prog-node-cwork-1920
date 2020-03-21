@@ -19,14 +19,14 @@ if (!fs.existsSync('./data/users.json')) {
   fs.writeFileSync('./data/users.json', '[]');
 }
 
-var users = require('./data/users.json'); // Load user data
+var users = JSON.parse(fs.readFileSync('./data/users.json')); // Load user data
 app.use('/auth', basicAuth({ authorizer: Authorise, authorizeAsync: true }));
 app.use('/api', basicAuth({ authorizer: Authorise, authorizeAsync: true })); // Everything by default requires authorisation
 var admin = { admin: 'password' }; // Admin user
 app.use('/api/admin', basicAuth({ users: admin })); // If something is under the admin category it needs to use the admin user
 
-var spells = require('./data/spells.json');
-var charindex = require('./data/charindex.json'); // Loads the spell and character index data
+var spells = JSON.parse(fs.readFileSync('./data/spells.json'));
+var charindex = JSON.parse(fs.readFileSync('./data/charindex.json')); // Loads the spell and character index data
 
 function Authorise (username, password, cb) { // Authoriser function
   if (basicAuth.safeCompare(username, 'admin') & basicAuth.safeCompare(password, 'password')) { // If they use the admin login then they're in
@@ -173,7 +173,7 @@ app.post('/api/editchar', async function (req, resp) { // Route to edit characte
     if (req.body.Id === undefined) { resp.status(400).send(); return; } // If they haven't given a character, give them a 400
     const index = charindex.find(x => x.Id === req.body.Id); // Otherwise find the character's index entry
     if (index === undefined) { resp.status(400).send(); return; } // If it's undefined, send a bad request since the char doesn't exist
-    const char = require('./data/chars/' + index.Id + '.json'); // Load the character's file
+    const char = JSON.parse(fs.readFileSync('./data/chars/' + index.Id + '.json')); // Load the character's file
     if (req.body.Name !== undefined) { // If the request wants to change the character's name
       char.Name = req.body.Name;
       index.Name = req.body.Name; // Update it on both the index and the character
