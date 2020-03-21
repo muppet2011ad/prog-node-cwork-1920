@@ -5,7 +5,7 @@ module.exports = {
         "node": true,
         "browser": true
     },
-    "extends": "semistandard",
+    "extends": ["semistandard", "plugin:jest/recommended"],
     "globals": {
         "Atomics": "readonly",
         "SharedArrayBuffer": "readonly"
@@ -16,5 +16,6 @@ module.exports = {
     "rules": {
         "no-unused-vars": "off",
         "brace-style": "off"
-    }
+    },
+    "plugins": ["jest"]
 };
