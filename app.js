@@ -281,4 +281,4 @@ app.get('/api/characters', function (req, resp) { // Route to search through cha
   }
 });
 
-app.listen(8090);
+module.exports = app;
