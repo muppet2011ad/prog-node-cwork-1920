@@ -9,14 +9,32 @@ app.use(express.static('client')); // Use static so we can serve pages
 app.use(bodyParser.urlencoded({ extended: false })); // Use bodyparser for post requests
 app.use(bodyParser.json()); // Lets us parse json
 
-if (!fs.existsSync('./data/charindex.json')) {
-  fs.writeFileSync('./data/charindex.json', '[]');
-}
-if (!fs.existsSync('./data/spells.json')) {
-  fs.writeFileSync('./data/spells.json', '[]');
-}
-if (!fs.existsSync('./data/users.json')) {
-  fs.writeFileSync('./data/users.json', '[]');
+let dataPath;
+
+if (process.env.NODE_ENV === 'test') {
+  dataPath = './tmp/data';
+  fs.mkdirSync('./tmp/data');
+  fs.mkdirSync('./tmp/data/chars');
+  fs.writeFileSync('./tmp/data/charindex.json', '[]');
+  fs.writeFileSync('./tmp/data/spells.json', '[]');
+  fs.writeFileSync('./tmp/data/users.json', '[]');
+} else {
+  dataPath = './data';
+  if (!fs.existsSync('./data/')) {
+    fs.mkdirSync('./data/');
+  }
+  if (!fs.existsSync('./data/chars/')) {
+    fs.mkdirSync('./data/chars/');
+  }
+  if (!fs.existsSync('./data/charindex.json')) {
+    fs.writeFileSync('./data/charindex.json', '[]');
+  }
+  if (!fs.existsSync('./data/spells.json')) {
+    fs.writeFileSync('./data/spells.json', '[]');
+  }
+  if (!fs.existsSync('./data/users.json')) {
+    fs.writeFileSync('./data/users.json', '[]');
+  }
 }
 
 var users = JSON.parse(fs.readFileSync('./data/users.json')); // Load user data
@@ -40,7 +58,7 @@ function Authorise (username, password, cb) { // Authoriser function
   }
 }
 
-app.get('/', function (req, resp) { // Add a get route at / to give an easy check that the server is up
+app.get('/ping', function (req, resp) { // Add a get route at /ping to give an easy check that the server is up
   resp.send('Hello, World!');
 });
 
