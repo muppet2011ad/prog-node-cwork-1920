@@ -14,8 +14,8 @@ let dataPath;
 if (process.env.NODE_ENV === 'test') {
   dataPath = './tmp/data';
   fs.mkdirSync('./tmp/');
-  fs.mkdirSync('./tmp/data');
-  fs.mkdirSync('./tmp/data/chars');
+  fs.mkdirSync('./tmp/data/');
+  fs.mkdirSync('./tmp/data/chars/');
   fs.writeFileSync('./tmp/data/charindex.json', '[]');
   fs.writeFileSync('./tmp/data/spells.json', '[]');
   fs.writeFileSync('./tmp/data/users.json', '[]');
@@ -57,7 +57,6 @@ function Authorise (username, password, cb) { // Authoriser function
 }
 
 app.get('/ping', function (req, resp) { // Add a get route at /ping to give an easy check that the server is up
-  console.log('yeet');
   resp.status(200).send();
 });
 
@@ -235,8 +234,7 @@ app.post('/newuser', function (req, resp) {
     if (users.find(x => x.Name === newuser.Name) !== undefined) { resp.status(401).send(); }
     if (newuser.Name === '' || newuser.Password === '' || newuser.Name === undefined || newuser.Password === undefined) { resp.status(400).send(); return; }
     users.push(newuser);
-    fs.writeFile(dataPath + '/users.json', JSON.stringify(users), 'utf8', () => {}); // Write to file
-    resp.status(200).send();
+    fs.writeFile(dataPath + '/users.json', JSON.stringify(users), 'utf8', () => { resp.status(200).send(); }); // Write to file
   } catch (e) {
     console.log(e);
     resp.status(500).send();
