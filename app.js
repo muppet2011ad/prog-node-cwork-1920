@@ -13,6 +13,7 @@ let dataPath;
 
 if (process.env.NODE_ENV === 'test') {
   dataPath = './tmp/data';
+  fs.mkdirSync('./tmp/');
   fs.mkdirSync('./tmp/data');
   fs.mkdirSync('./tmp/data/chars');
   fs.writeFileSync('./tmp/data/charindex.json', '[]');
@@ -37,16 +38,13 @@ if (process.env.NODE_ENV === 'test') {
   }
 }
 
-var users = JSON.parse(fs.readFileSync('./data/users.json')); // Load user data
 app.use('/auth', basicAuth({ authorizer: Authorise, authorizeAsync: true }));
 app.use('/api', basicAuth({ authorizer: Authorise, authorizeAsync: true })); // Everything by default requires authorisation
 var admin = { admin: 'password' }; // Admin user
 app.use('/api/admin', basicAuth({ users: admin })); // If something is under the admin category it needs to use the admin user
 
-var spells = JSON.parse(fs.readFileSync('./data/spells.json'));
-var charindex = JSON.parse(fs.readFileSync('./data/charindex.json')); // Loads the spell and character index data
-
 function Authorise (username, password, cb) { // Authoriser function
+  var users = JSON.parse(fs.readFileSync(dataPath + '/users.json')); // Load user data
   if (basicAuth.safeCompare(username, 'admin') & basicAuth.safeCompare(password, 'password')) { // If they use the admin login then they're in
     return cb(null, true);
   }
@@ -59,7 +57,8 @@ function Authorise (username, password, cb) { // Authoriser function
 }
 
 app.get('/ping', function (req, resp) { // Add a get route at /ping to give an easy check that the server is up
-  resp.send('Hello, World!');
+  console.log('yeet');
+  resp.status(200).send();
 });
 
 app.get('/auth', function (req, resp) {
@@ -73,6 +72,7 @@ app.get('/auth', function (req, resp) {
 
 app.post('/api/admin/addspell', function (req, resp) { // Route to add a spell
   try { // Error catching (don't want to bring down the whole server lol)
+    var spells = JSON.parse(fs.readFileSync(dataPath + '/spells.json'));
     const newspell = { // Create a new spell object
       Id: uuid(), // Generate a uuid for that spell
       Name: req.body.Name,
@@ -89,7 +89,7 @@ app.post('/api/admin/addspell', function (req, resp) { // Route to add a spell
     }
     spells.push(newspell); // If everything is kosher then add the spell to the list
     const json = JSON.stringify(spells); // JSON it up
-    fs.writeFile('./data/spells.json', json, 'utf8', () => {}); // Write it to the file (this goes to the worker pool so shouldn't be blocking)
+    fs.writeFile(dataPath + '/spells.json', json, 'utf8', () => {}); // Write it to the file (this goes to the worker pool so shouldn't be blocking)
     resp.status(200).send(); // Send an ok message
   } catch (e) { // If we have an error
     console.log(e); // Log it (for debugging)
@@ -99,9 +99,10 @@ app.post('/api/admin/addspell', function (req, resp) { // Route to add a spell
 
 app.post('/api/admin/addspells', function (req, resp) { // Route to add multiple spells
   try {
+    var spells = JSON.parse(fs.readFileSync(dataPath + '/spells.json'));
     spells.concat(req.body.arr); // Requires many spells to be given in an array
     const json = JSON.stringify(spells);
-    fs.writeFile('./data/spells.json', json, 'utf8', () => {}); // Save it all
+    fs.writeFile(dataPath + '/spells.json', json, 'utf8', () => {}); // Save it all
     resp.status(200).send();
   } catch (e) {
     console.log(e);
@@ -111,8 +112,10 @@ app.post('/api/admin/addspells', function (req, resp) { // Route to add multiple
 
 app.post('/api/admin/delspell', function (req, resp) { // Route to delete a spell
   try {
+    var charindex = JSON.parse(fs.readFileSync(dataPath + '/charindex.json')); // Loads the spell and character index data
+    var spells = JSON.parse(fs.readFileSync(dataPath + '/spells.json'));
     if (req.query.id !== undefined) { // If the spell given isn't undefined
-      const files = charindex.map(x => './data/chars/' + x.Id + '.json');
+      const files = charindex.map(x => dataPath + '/chars/' + x.Id + '.json');
       nodeasync.map(files, readCharacter, async function (err, characters) {
         if (err) {
           console.log(err);
@@ -123,12 +126,12 @@ app.post('/api/admin/delspell', function (req, resp) { // Route to delete a spel
         jsonchars.forEach(char => {
           char.Spells = char.Spells.filter(x => x !== req.query.id);
           const charjson = JSON.stringify(char);
-          fs.writeFile('./data/chars/' + char.Id + '.json', charjson, 'utf8', () => {});
+          fs.writeFile(dataPath + '/chars/' + char.Id + '.json', charjson, 'utf8', () => {});
         });
       });
       spells = spells.filter(x => x.Id !== req.query.id); // Remove the spell in question
       const json = JSON.stringify(spells);
-      fs.writeFile('./data/spells.json', json, 'utf8', () => {}); // Write to file
+      fs.writeFile(dataPath + '/spells.json', json, 'utf8', () => {}); // Write to file
       resp.status(200).send();
     } else {
       resp.status(400).send(); // If they didn't give us a spell id to work with it's a bad request
@@ -141,6 +144,8 @@ app.post('/api/admin/delspell', function (req, resp) { // Route to delete a spel
 
 app.post('/api/newchar', function (req, resp) { // Route to create a character
   try {
+    var charindex = JSON.parse(fs.readFileSync(dataPath + '/charindex.json')); // Loads the spell and character index data
+    var users = JSON.parse(fs.readFileSync(dataPath + '/users.json')); // Load user data
     const newchar = {
       Id: uuid(),
       Name: req.body.Name,
@@ -155,12 +160,12 @@ app.post('/api/newchar', function (req, resp) { // Route to create a character
     }
     charindex.push({ Id: newchar.Id, Name: newchar.Name }); // Add the character to our index
     const indexjson = JSON.stringify(charindex);
-    fs.writeFile('./data/charindex.json', indexjson, 'utf8', () => {}); // Write it to file
+    fs.writeFile(dataPath + '/charindex.json', indexjson, 'utf8', () => {}); // Write it to file
     const charjson = JSON.stringify(newchar);
-    fs.writeFile('./data/chars/' + newchar.Id + '.json', charjson, 'utf8', () => {}); // Write the character to file
+    fs.writeFile(dataPath + '/chars/' + newchar.Id + '.json', charjson, 'utf8', () => {}); // Write the character to file
     const user = users.find(x => x.Name === req.auth.user);
     user.Chars.push(newchar.Id); // Add the character to the user's list of chars
-    fs.writeFile('./data/users.json', JSON.stringify(users), 'utf8', () => {}); // Write to file
+    fs.writeFile(dataPath + '/users.json', JSON.stringify(users), 'utf8', () => {}); // Write to file
     resp.status(200).send();
   } catch (e) {
     console.log(e);
@@ -170,13 +175,15 @@ app.post('/api/newchar', function (req, resp) { // Route to create a character
 
 app.post('/api/delchar', async function (req, resp) {
   try {
+    var charindex = JSON.parse(fs.readFileSync(dataPath + '/charindex.json')); // Loads the spell and character index data
+    var users = JSON.parse(fs.readFileSync(dataPath + '/users.json')); // Load user data
     const user = users.find(x => x.Name === req.auth.user);
     if (!user.Chars.includes(req.body.Id)) { resp.status(401).send(); return; }
     charindex = charindex.filter(x => x.Id !== req.body.Id);
-    fs.writeFile('./data/charindex.json', JSON.stringify(charindex), 'utf8', () => {});
+    fs.writeFile(dataPath + '/charindex.json', JSON.stringify(charindex), 'utf8', () => {});
     user.Chars = user.Chars.filter(x => x !== req.body.Id);
-    fs.writeFile('./data/users.json', JSON.stringify(users), 'utf8', () => {});
-    fs.unlink('./data/chars/' + req.body.Id + '.json', () => {});
+    fs.writeFile(dataPath + '/users.json', JSON.stringify(users), 'utf8', () => {});
+    fs.unlink(dataPath + '/chars/' + req.body.Id + '.json', () => {});
     resp.status(200).send();
   } catch (e) {
     console.log(e);
@@ -186,17 +193,19 @@ app.post('/api/delchar', async function (req, resp) {
 
 app.post('/api/editchar', async function (req, resp) { // Route to edit character
   try {
+    var charindex = JSON.parse(fs.readFileSync(dataPath + '/charindex.json')); // Loads the spell and character index data
+    var users = JSON.parse(fs.readFileSync(dataPath + '/users.json')); // Load user data
     const user = users.find(x => x.Name === req.auth.user); // Find the user who's making the request
     if (!user.Chars.includes(req.body.Id)) { resp.status(401).send(); return; } // If the character they're trying to edit isn't theirs, give them a 401
     if (req.body.Id === undefined) { resp.status(400).send(); return; } // If they haven't given a character, give them a 400
     const index = charindex.find(x => x.Id === req.body.Id); // Otherwise find the character's index entry
     if (index === undefined) { resp.status(400).send(); return; } // If it's undefined, send a bad request since the char doesn't exist
-    const char = JSON.parse(fs.readFileSync('./data/chars/' + index.Id + '.json')); // Load the character's file
+    const char = JSON.parse(fs.readFileSync(dataPath + '/chars/' + index.Id + '.json')); // Load the character's file
     if (req.body.Name !== undefined) { // If the request wants to change the character's name
       char.Name = req.body.Name;
       index.Name = req.body.Name; // Update it on both the index and the character
       const indexjson = JSON.stringify(charindex);
-      fs.writeFile('./data/charindex.json', indexjson, 'utf8', () => {}); // Write the new index to file
+      fs.writeFile(dataPath + '/charindex.json', indexjson, 'utf8', () => {}); // Write the new index to file
     }
     if (req.body.Level !== undefined) { char.Level = req.body.Level; }
     if (req.body.Class !== undefined) { char.Class = req.body.Class; }
@@ -207,7 +216,7 @@ app.post('/api/editchar', async function (req, resp) { // Route to edit characte
       char.Spells = char.Spells.concat(req.body.Spells[0]); // Add in the new spells
     }
     const charjson = JSON.stringify(char);
-    fs.writeFile('./data/chars/' + char.Id + '.json', charjson, 'utf8', () => {}); // Update the character file
+    fs.writeFile(dataPath + '/chars/' + char.Id + '.json', charjson, 'utf8', () => {}); // Update the character file
     resp.status(200).send();
   } catch (e) {
     console.log(e);
@@ -217,6 +226,7 @@ app.post('/api/editchar', async function (req, resp) { // Route to edit characte
 
 app.post('/newuser', function (req, resp) {
   try {
+    var users = JSON.parse(fs.readFileSync(dataPath + '/users.json')); // Load user data
     const newuser = {
       Name: req.body.username,
       Password: req.body.password,
@@ -225,7 +235,7 @@ app.post('/newuser', function (req, resp) {
     if (users.find(x => x.Name === newuser.Name) !== undefined) { resp.status(401).send(); }
     if (newuser.Name === '' || newuser.Password === '' || newuser.Name === undefined || newuser.Password === undefined) { resp.status(400).send(); return; }
     users.push(newuser);
-    fs.writeFile('./data/users.json', JSON.stringify(users), 'utf8', () => {}); // Write to file
+    fs.writeFile(dataPath + '/users.json', JSON.stringify(users), 'utf8', () => {}); // Write to file
     resp.status(200).send();
   } catch (e) {
     console.log(e);
@@ -235,6 +245,7 @@ app.post('/newuser', function (req, resp) {
 
 app.get('/api/spells', function (req, resp) { // Function to get spells
   try {
+    var spells = JSON.parse(fs.readFileSync(dataPath + '/spells.json'));
     if (Object.keys(req.query).length === 0) { resp.send(spells); } // If they don't give any query string, return all spells
     else {
       let validspells = spells;
@@ -270,6 +281,8 @@ function readCharacter (file, callback) { // Function to read a single file in (
 
 app.get('/api/characters', function (req, resp) { // Route to search through characters
   try {
+    var charindex = JSON.parse(fs.readFileSync(dataPath + '/charindex.json')); // Loads the spell and character index data
+    var users = JSON.parse(fs.readFileSync(dataPath + '/users.json')); // Load user data
     let userchars = []; // Sets up a list to store the characters that the user has access to
     const usercharindex = users.find(x => x.Name === req.auth.user).Chars;
     if (req.auth.user !== 'admin') { userchars = charindex.filter(x => usercharindex.includes(x.Id)); } // Filter the characters based on what the user has access to
@@ -283,7 +296,7 @@ app.get('/api/characters', function (req, resp) { // Route to search through cha
         userchars = userchars.filter(x => x.Name.includes(req.query.name));
       }
     }
-    const files = userchars.map(x => './data/chars/' + x.Id + '.json'); // Load these characters into memory
+    const files = userchars.map(x => dataPath + '/chars/' + x.Id + '.json'); // Load these characters into memory
     nodeasync.map(files, readCharacter, function (err, characters) { // This does it asynchronously so we don't block the event loop
       if (err) {
         console.log(err);

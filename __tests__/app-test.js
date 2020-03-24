@@ -1,7 +1,13 @@
 /* eslint-disable jest/expect-expect */
 
-const app = require('../app');
+let app;
 const request = require('supertest');
+const fs = require('fs');
+
+beforeAll(() => {
+  fs.rmdirSync('./tmp/', { recursive: true });
+  app = require('../app');
+});
 
 describe('Verify app is responding', () => {
   test('GET /ping', () => {
@@ -9,4 +15,8 @@ describe('Verify app is responding', () => {
       .get('/ping')
       .expect(200);
   });
+});
+
+afterAll(() => {
+  fs.rmdirSync('./tmp/', { recursive: true });
 });
