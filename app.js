@@ -88,8 +88,7 @@ app.post('/api/admin/addspell', function (req, resp) { // Route to add a spell
     }
     spells.push(newspell); // If everything is kosher then add the spell to the list
     const json = JSON.stringify(spells); // JSON it up
-    fs.writeFile(dataPath + '/spells.json', json, 'utf8', () => {}); // Write it to the file (this goes to the worker pool so shouldn't be blocking)
-    resp.status(200).send(); // Send an ok message
+    fs.writeFile(dataPath + '/spells.json', json, 'utf8', () => { resp.status(200).send(); }); // Write it to the file (this goes to the worker pool so shouldn't be blocking)
   } catch (e) { // If we have an error
     console.log(e); // Log it (for debugging)
     resp.status(500).send(); // Give a client an internal server error
@@ -101,8 +100,7 @@ app.post('/api/admin/addspells', function (req, resp) { // Route to add multiple
     var spells = JSON.parse(fs.readFileSync(dataPath + '/spells.json'));
     spells.concat(req.body.arr); // Requires many spells to be given in an array
     const json = JSON.stringify(spells);
-    fs.writeFile(dataPath + '/spells.json', json, 'utf8', () => {}); // Save it all
-    resp.status(200).send();
+    fs.writeFile(dataPath + '/spells.json', json, 'utf8', () => { resp.status(200).send(); }); // Save it all
   } catch (e) {
     console.log(e);
     resp.status(500).send();
@@ -122,16 +120,23 @@ app.post('/api/admin/delspell', function (req, resp) { // Route to delete a spel
           return;
         }
         const jsonchars = characters.map(x => JSON.parse(x));
+        const writes = [];
         jsonchars.forEach(char => {
           char.Spells = char.Spells.filter(x => x !== req.query.id);
           const charjson = JSON.stringify(char);
-          fs.writeFile(dataPath + '/chars/' + char.Id + '.json', charjson, 'utf8', () => {});
+          writes.push({ path: dataPath + '/chars/' + char.Id + '.json', json: char });
+        });
+        nodeasync.map(writes, JSONToFile, (e, r) => {
+          if (e) {
+            resp.status(500).send();
+          }
+          else {
+            spells = spells.filter(x => x.Id !== req.query.id); // Remove the spell in question
+            const json = JSON.stringify(spells);
+            fs.writeFile(dataPath + '/spells.json', json, 'utf8', () => { resp.status(200).send(); }); // Write to file
+          }
         });
       });
-      spells = spells.filter(x => x.Id !== req.query.id); // Remove the spell in question
-      const json = JSON.stringify(spells);
-      fs.writeFile(dataPath + '/spells.json', json, 'utf8', () => {}); // Write to file
-      resp.status(200).send();
     } else {
       resp.status(400).send(); // If they didn't give us a spell id to work with it's a bad request
     }
@@ -309,5 +314,9 @@ app.get('/api/characters', function (req, resp) { // Route to search through cha
     resp.status(500).send();
   }
 });
+
+function JSONToFile (obj, callback) {
+  fs.writeFile(obj.path, JSON.stringify(obj.json), callback);
+}
 
 module.exports = app;
