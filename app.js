@@ -163,14 +163,13 @@ app.post('/api/newchar', function (req, resp) { // Route to create a character
       return;
     }
     charindex.push({ Id: newchar.Id, Name: newchar.Name }); // Add the character to our index
-    const indexjson = JSON.stringify(charindex);
-    fs.writeFile(dataPath + '/charindex.json', indexjson, 'utf8', () => {}); // Write it to file
-    const charjson = JSON.stringify(newchar);
-    fs.writeFile(dataPath + '/chars/' + newchar.Id + '.json', charjson, 'utf8', () => {}); // Write the character to file
     const user = users.find(x => x.Name === req.auth.user);
     user.Chars.push(newchar.Id); // Add the character to the user's list of chars
-    fs.writeFile(dataPath + '/users.json', JSON.stringify(users), 'utf8', () => {}); // Write to file
-    resp.status(200).send();
+    const writes = [{ path: dataPath + '/charindex.json', json: charindex }, { path: dataPath + '/chars/' + newchar.Id + '.json', json: newchar }, { path: dataPath + '/users.json', json: users }];
+    nodeasync.map(writes, JSONToFile, (e, r) => {
+      if (e) { resp.status(500).send(); }
+      else { resp.status(200).send(); }
+    });
   } catch (e) {
     console.log(e);
     resp.status(500).send();
@@ -184,11 +183,11 @@ app.post('/api/delchar', async function (req, resp) {
     const user = users.find(x => x.Name === req.auth.user);
     if (!user.Chars.includes(req.body.Id)) { resp.status(401).send(); return; }
     charindex = charindex.filter(x => x.Id !== req.body.Id);
-    fs.writeFile(dataPath + '/charindex.json', JSON.stringify(charindex), 'utf8', () => {});
     user.Chars = user.Chars.filter(x => x !== req.body.Id);
-    fs.writeFile(dataPath + '/users.json', JSON.stringify(users), 'utf8', () => {});
-    fs.unlink(dataPath + '/chars/' + req.body.Id + '.json', () => {});
-    resp.status(200).send();
+    const writes = [{ path: dataPath + '/charindex.json', json: charindex }, { path: dataPath + '/users.json', json: users }];
+    nodeasync.map(writes, JSONToFile, (e, r) => {
+      fs.unlink(dataPath + '/chars/' + req.body.Id + '.json', () => { resp.status(200).send(); });
+    });
   } catch (e) {
     console.log(e);
     resp.status(500).send();
@@ -220,8 +219,7 @@ app.post('/api/editchar', async function (req, resp) { // Route to edit characte
       char.Spells = char.Spells.concat(req.body.Spells[0]); // Add in the new spells
     }
     const charjson = JSON.stringify(char);
-    fs.writeFile(dataPath + '/chars/' + char.Id + '.json', charjson, 'utf8', () => {}); // Update the character file
-    resp.status(200).send();
+    fs.writeFile(dataPath + '/chars/' + char.Id + '.json', charjson, 'utf8', () => { resp.status(200).send(); }); // Update the character file
   } catch (e) {
     console.log(e);
     resp.status(500).send();
