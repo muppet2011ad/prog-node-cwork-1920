@@ -323,6 +323,7 @@ app.get('/api/characters', function (req, resp) { // Route to search through cha
       else { userchars = charindex; } // If the user is the admin, they can see all characters
       if (Object.keys(req.query).length !== 0) {
         if (req.query.id !== undefined) {
+          if (!charindex.find(x => x.Id === req.query.id)) { resp.status(400).send(); }
           userchars = [userchars.find(x => x.Id === req.query.id)];
           if (userchars[0] === undefined) { resp.status(401).send(); return; }
         }

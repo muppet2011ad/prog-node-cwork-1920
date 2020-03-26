@@ -200,6 +200,61 @@ describe('Character editing', () => {
   });
 });
 
+describe('Character searching/fetching', () => {
+  beforeAll(() => {
+    writeObject(usersFile, [{ Name: 'test', Password: 'password', Chars: ['1', '3'] }, { Name: 'test2', Password: 'password', Chars: ['2'] }]);
+    writeObject(charindexFile, [{ Id: '1', Name: 'char1' }, { Id: '2', Name: 'char2' }, { Id: '3', Name: 'char3' }]);
+    writeObject(charDir + '1.json', { Id: '1', Name: 'char1', Level: 1, Class: 'Fighter', Race: 'Human', Spells: [] });
+    writeObject(charDir + '3.json', { Id: '3', Name: 'char3', Level: 1, Class: 'Ranger', Race: 'Elf', Spells: ['spell1'] });
+    writeObject(charDir + '2.json', { Id: '2', Name: 'char2', Level: 2, Class: 'Wizard', Race: 'Human', Spells: ['spell1', 'spell4'] });
+  });
+  test('GET /api/characters with no query returns all characters for the user', () => {
+    return request(app)
+      .get('/api/characters')
+      .auth('test', 'password')
+      .expect(200)
+      .expect(JSON.stringify([{ Id: '1', Name: 'char1', Level: 1, Class: 'Fighter', Race: 'Human', Spells: [] }, { Id: '3', Name: 'char3', Level: 1, Class: 'Ranger', Race: 'Elf', Spells: ['spell1'] }]));
+  });
+  test('GET /api/characters querying by name succeeds', () => {
+    return request(app)
+      .get('/api/characters?name=char1')
+      .auth('test', 'password')
+      .expect(200)
+      .expect(JSON.stringify([{ Id: '1', Name: 'char1', Level: 1, Class: 'Fighter', Race: 'Human', Spells: [] }]));
+  });
+  test('GET /api/characters querying by id succeeds', () => {
+    return request(app)
+      .get('/api/characters?id=1')
+      .auth('test', 'password')
+      .expect(200)
+      .expect(JSON.stringify([{ Id: '1', Name: 'char1', Level: 1, Class: 'Fighter', Race: 'Human', Spells: [] }]));
+  });
+  test('GET /api/characters querying id of another user\'s character fails with 401', () => {
+    return request(app)
+      .get('/api/characters?id=2')
+      .auth('test', 'password')
+      .expect(401);
+  });
+  test('GET /api/characters querying an invalid id fails with 400', () => {
+    return request(app)
+      .get('/api/characters?id=5')
+      .auth('test', 'password')
+      .expect(400);
+  });
+  test('GET /api/characters querying with a non-existent name succeeds but gives no results', () => {
+    return request(app)
+      .get('/api/characters?name=John')
+      .auth('test', 'password')
+      .expect(200)
+      .expect(JSON.stringify([]));
+  });
+  test('GET /api/characters with no authentication fails with 401', () => {
+    return request(app)
+      .get('/api/characters')
+      .expect(401);
+  });
+});
+
 afterAll(async () => {
   fs.rmdirSync('./tmp/', { recursive: true });
 });
