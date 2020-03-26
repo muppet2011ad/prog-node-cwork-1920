@@ -10,6 +10,9 @@ const spellsFile = './tmp/data/spells.json';
 const charDir = './tmp/data/chars/';
 
 beforeAll(() => {
+  if (process.env.NODE_ENV !== 'test') {
+    process.env.NODE_ENV = 'test';
+  }
   fs.rmdirSync('./tmp/', { recursive: true });
   app = require('../app');
 });
@@ -71,8 +74,8 @@ describe('Test user creation and subsequent authentication', () => {
 
 describe('Character creation and deletion', () => {
   beforeEach(() => {
-    fs.writeFileSync(usersFile, JSON.stringify([{ Name: 'test', Password: 'password', Chars: [] }]));
-    fs.writeFileSync(charindexFile, '[]');
+    writeObject(usersFile, [{ Name: 'test', Password: 'password', Chars: [] }]);
+    writeObject(charindexFile, []);
   });
   test('POST /api/newchar with new character details succeeds', () => {
     return request(app)
@@ -100,9 +103,9 @@ describe('Character creation and deletion', () => {
       .expect(401);
   });
   test('POST /api/delchar with existing character succeeds', () => {
-    fs.writeFileSync(charindexFile, JSON.stringify([{ Id: '123', Name: 'test' }]));
-    fs.writeFileSync(usersFile, JSON.stringify([{ Name: 'test', Password: 'password', Chars: ['123'] }]));
-    fs.writeFileSync(charDir + '123.json', JSON.stringify({ Id: '123', Name: 'test' })); // I haven't filled in all of the character information but it shouldn't make any difference
+    writeObject(charindexFile, [{ Id: '123', Name: 'test' }]);
+    writeObject(usersFile, [{ Name: 'test', Password: 'password', Chars: ['123'] }]);
+    writeObject(charDir + '123.json', { Id: '123', Name: 'test' }); // I haven't filled in all of the character information but it shouldn't make any difference
     return request(app)
       .post('/api/delchar')
       .auth('test', 'password')
@@ -110,16 +113,16 @@ describe('Character creation and deletion', () => {
       .expect(200)
       .then(() => {
         expect(fs.existsSync(charDir + '123.json')).toBeFalsy();
-        expect(JSON.parse(fs.readFileSync(usersFile))[0].Chars).toEqual([]);
-        expect(JSON.parse(fs.readFileSync(charindexFile))).toEqual([]);
+        expect(readObject(usersFile)[0].Chars).toEqual([]);
+        expect(readObject(charindexFile)).toEqual([]);
       });
   });
-  test('POST /api/delchar with non-existent character fails with 401', () => {
+  test('POST /api/delchar with non-existent character fails with 400', () => {
     return request(app)
       .post('/api/delchar')
       .auth('test', 'password')
       .send({ Id: '124' })
-      .expect(401);
+      .expect(400);
   });
   test('POST /api/delchar without authorisation files with 401', () => {
     return request(app)
@@ -129,6 +132,82 @@ describe('Character creation and deletion', () => {
   });
 });
 
+describe('Character editing', () => {
+  beforeEach(() => {
+    writeObject(usersFile, [{ Name: 'test', Password: 'password', Chars: ['1'] }, { Name: 'test2', Password: 'password', Chars: ['2'] }]);
+    writeObject(charindexFile, [{ Id: '1', Name: 'char1' }, { Id: '2', Name: 'char2' }]);
+    writeObject(charDir + '1.json', { Id: '1', Name: 'char1', Level: 1, Class: 'Fighter', Race: 'Human', Spells: [] });
+    writeObject(charDir + '2.json', { Id: '2', Name: 'char2', Level: 2, Class: 'Wizard', Race: 'Human', Spells: ['spell1', 'spell4'] });
+  });
+  test('POST /api/editchar to change all but character name and spells succeeds', () => {
+    return request(app)
+      .post('/api/editchar')
+      .auth('test', 'password')
+      .send({ Id: '1', Level: 2, Class: 'Monk', Race: 'Dwarf' })
+      .expect(200)
+      .then(() => {
+        expect(readObject(charDir + '1.json')).toEqual({ Id: '1', Name: 'char1', Level: 2, Class: 'Monk', Race: 'Dwarf', Spells: [] });
+      });
+  });
+  test('POST /api/editchar to change character name succeeds', () => {
+    return request(app)
+      .post('/api/editchar')
+      .auth('test', 'password')
+      .send({ Id: '1', Name: 'John Smith' })
+      .expect(200)
+      .then(() => {
+        expect(readObject(charDir + '1.json').Name).toEqual('John Smith');
+        expect(readObject(charindexFile)[0].Name).toEqual('John Smith');
+      });
+  });
+  test('POST /api/editchar to change spells succeeds', () => {
+    return request(app)
+      .post('/api/editchar')
+      .auth('test2', 'password')
+      .send({ Id: '2', Spells: [['spell2', 'spell3'], ['spell1', 'spell4']] })
+      .expect(200)
+      .then(() => {
+        expect(readObject(charDir + '2.json').Spells).toEqual(['spell2', 'spell3']);
+      });
+  });
+  test('POST /api/editchar to another user\'s character fails with 401', () => {
+    return request(app)
+      .post('/api/editchar')
+      .auth('test', 'password')
+      .send({ Id: '2', Class: 'Fighter' })
+      .expect(401);
+  });
+  test('POST /api/editchar without character id fails with 400', () => {
+    return request(app)
+      .post('/api/editchar')
+      .auth('test', 'password')
+      .send({ Class: 'Fighter' })
+      .expect(400);
+  });
+  test('POST /api/editchar with invalid spell changes fails with 400', () => {
+    return request(app)
+      .post('/api/editchar')
+      .auth('test', 'password')
+      .send({ Id: '1', Spells: ['spell1'] })
+      .expect(400);
+  });
+  test('POST /api/editchar with non-existent character fails with 400', () => {
+    return request(app)
+      .post('/api/editchar')
+      .auth('test', 'password')
+      .send({ Id: '3', Class: 'Fighter' })
+      .expect(400);
+  });
+});
+
 afterAll(async () => {
   fs.rmdirSync('./tmp/', { recursive: true });
 });
+
+function writeObject (path, obj) {
+  fs.writeFileSync(path, JSON.stringify(obj));
+}
+
+function readObject (path) {
+  return JSON.parse(fs.readFileSync(path));
+}

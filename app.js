@@ -196,6 +196,7 @@ app.post('/api/delchar', async function (req, resp) {
       if (e) { throw e; }
       let charindex = JSON.parse(d[0]);
       const users = JSON.parse(d[1]);
+      if (!charindex.find(x => x.Id === req.body.Id)) { resp.status(400).send(); }
       const user = users.find(x => x.Name === req.auth.user);
       if (!user.Chars.includes(req.body.Id)) { resp.status(401).send(); return; }
       charindex = charindex.filter(x => x.Id !== req.body.Id);
@@ -214,15 +215,16 @@ app.post('/api/delchar', async function (req, resp) {
 app.post('/api/editchar', async function (req, resp) { // Route to edit character
   try {
     const reads = [dataPath + '/charindex.json', dataPath + '/users.json'];
+    if (!req.body.Id) { resp.status(400).send(); }
     nodeasync.map(reads, readFile, (e, d) => {
       if (e) { throw e; }
       const charindex = JSON.parse(d[0]);
       const users = JSON.parse(d[1]);
+      const index = charindex.find(x => x.Id === req.body.Id); // Otherwise find the character's index entry
+      if (index === undefined) { resp.status(400).send(); return; } // If it's undefined, send a bad request since the char doesn't exist
       const user = users.find(x => x.Name === req.auth.user); // Find the user who's making the request
       if (!user.Chars.includes(req.body.Id)) { resp.status(401).send(); return; } // If the character they're trying to edit isn't theirs, give them a 401
       if (req.body.Id === undefined) { resp.status(400).send(); return; } // If they haven't given a character, give them a 400
-      const index = charindex.find(x => x.Id === req.body.Id); // Otherwise find the character's index entry
-      if (index === undefined) { resp.status(400).send(); return; } // If it's undefined, send a bad request since the char doesn't exist
       const char = JSON.parse(fs.readFileSync(dataPath + '/chars/' + index.Id + '.json')); // Load the character's file
       if (req.body.Name !== undefined) { // If the request wants to change the character's name
         char.Name = req.body.Name;
@@ -232,7 +234,7 @@ app.post('/api/editchar', async function (req, resp) { // Route to edit characte
       if (req.body.Class !== undefined) { char.Class = req.body.Class; }
       if (req.body.Race !== undefined) { char.Race = req.body.Race; } // If any properties want changing, do that
       if (req.body.Spells !== undefined) { // If the user wants to change spells
-        if (req.body.Spells.length !== 2) { resp.status(400).send(); return; } // They should give an array of spells to add and of spells to remove. If they haven't give a 400
+        if (req.body.Spells.length !== 2 && !Array.isArray(req.body.Spells[0]) && !Array.isArray(req.body.Spells[1])) { resp.status(400).send(); return; } // They should give an array of spells to add and of spells to remove. If they haven't give a 400
         char.Spells = char.Spells.filter(x => !req.body.Spells[1].includes(x)); // Remove the old ones
         char.Spells = char.Spells.concat(req.body.Spells[0]); // Add in the new spells
       }
