@@ -255,6 +255,62 @@ describe('Character searching/fetching', () => {
   });
 });
 
+describe('Spell searching/fetching', () => {
+  beforeAll(() => {
+    writeObject(usersFile, [{ Name: 'test', Password: 'password', Chars: [] }]);
+    writeObject(spellsFile, [{ Id: '1', Name: 'spell1', Level: 3, School: 'Evocation', Components: ['V', 'S', 'M'], Damage: '2d6+2', Desc: 'lol' }, { Id: '2', Name: 'spell2', Level: 4, School: 'Evocation', Components: ['V', 'M'], Damage: '4d8+1', Desc: 'lol2' }, { Id: '3', Name: 'spell3', Level: 12, School: 'Transmutation', Components: ['V', 'S', 'M'], Damage: '', Desc: 'lol3' }]);
+  });
+  test('GET /api/spells without query string returns all spells', () => {
+    return request(app)
+      .get('/api/spells')
+      .auth('test', 'password')
+      .expect(200)
+      .expect(JSON.stringify([{ Id: '1', Name: 'spell1', Level: 3, School: 'Evocation', Components: ['V', 'S', 'M'], Damage: '2d6+2', Desc: 'lol' }, { Id: '2', Name: 'spell2', Level: 4, School: 'Evocation', Components: ['V', 'M'], Damage: '4d8+1', Desc: 'lol2' }, { Id: '3', Name: 'spell3', Level: 12, School: 'Transmutation', Components: ['V', 'S', 'M'], Damage: '', Desc: 'lol3' }]));
+  });
+  test('GET /api/spells with single id succeeds', () => {
+    return request(app)
+      .get('/api/spells?id=1')
+      .auth('test', 'password')
+      .expect(200)
+      .expect(JSON.stringify([{ Id: '1', Name: 'spell1', Level: 3, School: 'Evocation', Components: ['V', 'S', 'M'], Damage: '2d6+2', Desc: 'lol' }]));
+  });
+  test('GET /api/spells with multiple ids succeeds', () => {
+    return request(app)
+      .get('/api/spells?ids=["1","2"]')
+      .auth('test', 'password')
+      .expect(200)
+      .expect(JSON.stringify([{ Id: '1', Name: 'spell1', Level: 3, School: 'Evocation', Components: ['V', 'S', 'M'], Damage: '2d6+2', Desc: 'lol' }, { Id: '2', Name: 'spell2', Level: 4, School: 'Evocation', Components: ['V', 'M'], Damage: '4d8+1', Desc: 'lol2' }]))
+  });
+  test('GET /api/spells with name succeeds', () => {
+    return request(app)
+      .get('/api/spells?name=1')
+      .auth('test', 'password')
+      .expect(200)
+      .expect(JSON.stringify([{ Id: '1', Name: 'spell1', Level: 3, School: 'Evocation', Components: ['V', 'S', 'M'], Damage: '2d6+2', Desc: 'lol' }]));
+  });
+  test('GET /api/spells with spell level succeeds', () => {
+    return request(app)
+      .get('/api/spells?level=3')
+      .auth('test', 'password')
+      .expect(200)
+      .expect(JSON.stringify([{ Id: '1', Name: 'spell1', Level: 3, School: 'Evocation', Components: ['V', 'S', 'M'], Damage: '2d6+2', Desc: 'lol' }]));
+  });
+  test('GET /api/spells with spell school succeeds', () => {
+    return request(app)
+      .get('/api/spells?school=Evocation')
+      .auth('test', 'password')
+      .expect(200)
+      .expect(JSON.stringify([{ Id: '1', Name: 'spell1', Level: 3, School: 'Evocation', Components: ['V', 'S', 'M'], Damage: '2d6+2', Desc: 'lol' }, { Id: '2', Name: 'spell2', Level: 4, School: 'Evocation', Components: ['V', 'M'], Damage: '4d8+1', Desc: 'lol2' }]));
+  });
+  test('GET /api/spells with spell damage succeeds', () => {
+    return request(app)
+      .get('/api/spells?damage=2d6%2B2')
+      .auth('test', 'password')
+      .expect(200)
+      .expect(JSON.stringify([{ Id: '1', Name: 'spell1', Level: 3, School: 'Evocation', Components: ['V', 'S', 'M'], Damage: '2d6+2', Desc: 'lol' }]));
+  });
+});
+
 afterAll(async () => {
   fs.rmdirSync('./tmp/', { recursive: true });
 });
