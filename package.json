@@ -1,7 +1,7 @@
 {
   "name": "prog-node-cwork-1920",
-  "version": "0.6.0",
-  "description": "D&D Spell Manager - For Steven Bradley's Coursework",
+  "version": "0.7.0",
+  "description": "Roll20 Spell Manager - For Steven Bradley's Coursework",
   "main": "server.js",
   "scripts": {
     "dev": "nodemon app.js",
