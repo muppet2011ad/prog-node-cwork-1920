@@ -311,6 +311,39 @@ describe('Spell searching/fetching', () => {
   });
 });
 
+describe('Spell adding', () => {
+  beforeEach(() => {
+    writeObject(usersFile, [{ Name: 'test', Password: 'password', Chars: [] }]);
+    writeObject(spellsFile, [{ Id: '1', Name: 'spell1', Level: 3, School: 'Evocation', Components: ['V', 'S', 'M'], Damage: '2d6+2', Desc: 'lol' }]);
+  });
+  test('POST /api/admin/addspell with valid data succeeds', () => {
+    return request(app)
+      .post('/api/admin/addspell')
+      .auth('admin', 'password')
+      .send({ Name: 'spell2', Level: 2, School: 'Necromancy', Components: ['V', 'S'], Damage: '', Desc: 'lol2' })
+      .expect(200)
+      .then(() => {
+        const spell = readObject(spellsFile)[1];
+        delete spell.Id;
+        expect(spell).toEqual({ Name: 'spell2', Level: 2, School: 'Necromancy', Components: ['V', 'S'], Damage: '', Desc: 'lol2' });
+      });
+  });
+  test('POST /api/admin/addspell with incomplete data fails with 400', () => {
+    return request(app)
+      .post('/api/admin/addspell')
+      .auth('admin', 'password')
+      .send({ Name: 'spell2', Level: 2, Components: ['V', 'S'], Damage: '', Desc: 'lol2' })
+      .expect(400);
+  });
+  test('POST /api/admin/addspell with non-admin credentials fails with 401', () => {
+    return request(app)
+      .post('/api/admin/addspell')
+      .auth('test', 'password')
+      .send({ Name: 'spell2', Level: 2, School: 'Necromancy', Components: ['V', 'S'], Damage: '', Desc: 'lol2' })
+      .expect(401);
+  });
+});
+
 afterAll(async () => {
   fs.rmdirSync('./tmp/', { recursive: true });
 });
