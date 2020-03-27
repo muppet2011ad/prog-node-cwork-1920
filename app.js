@@ -1,3 +1,7 @@
+/**
+ * Express app providing routes for the roll20 spell manager
+ */
+
 var express = require('express');
 var app = express();
 var bodyParser = require('body-parser');
@@ -184,7 +188,7 @@ app.post('/api/delchar', async function (req, resp) {
       const users = JSON.parse(d[1]);
       if (!charindex.find(x => x.Id === req.body.Id)) { resp.status(400).send(); }
       const user = users.find(x => x.Name === req.auth.user);
-      if (!user.Chars.includes(req.body.Id)) { resp.status(401).send(); return; }
+      if (!user.Chars.includes(req.body.Id)) { resp.status(403).send(); return; }
       charindex = charindex.filter(x => x.Id !== req.body.Id);
       user.Chars = user.Chars.filter(x => x !== req.body.Id);
       const writes = [{ path: dataPath + '/charindex.json', json: charindex }, { path: dataPath + '/users.json', json: users }];
@@ -209,7 +213,7 @@ app.post('/api/editchar', async function (req, resp) { // Route to edit characte
       const index = charindex.find(x => x.Id === req.body.Id); // Otherwise find the character's index entry
       if (index === undefined) { resp.status(400).send(); return; } // If it's undefined, send a bad request since the char doesn't exist
       const user = users.find(x => x.Name === req.auth.user); // Find the user who's making the request
-      if (!user.Chars.includes(req.body.Id)) { resp.status(401).send(); return; } // If the character they're trying to edit isn't theirs, give them a 401
+      if (!user.Chars.includes(req.body.Id)) { resp.status(403).send(); return; } // If the character they're trying to edit isn't theirs, give them a 403
       if (req.body.Id === undefined) { resp.status(400).send(); return; } // If they haven't given a character, give them a 400
       const char = JSON.parse(fs.readFileSync(dataPath + '/chars/' + index.Id + '.json')); // Load the character's file
       if (req.body.Name !== undefined) { // If the request wants to change the character's name
@@ -246,7 +250,7 @@ app.post('/newuser', function (req, resp) {
         Password: req.body.password,
         Chars: []
       };
-      if (users.find(x => x.Name === newuser.Name) !== undefined) { resp.status(401).send(); }
+      if (users.find(x => x.Name === newuser.Name) !== undefined) { resp.status(403).send(); }
       if (newuser.Name === '' || newuser.Password === '' || newuser.Name === undefined || newuser.Password === undefined) { resp.status(400).send(); return; }
       users.push(newuser);
       fs.writeFile(dataPath + '/users.json', JSON.stringify(users), 'utf8', () => { resp.status(200).send(); }); // Write to file
@@ -311,7 +315,7 @@ app.get('/api/characters', function (req, resp) { // Route to search through cha
         if (req.query.id !== undefined) {
           if (!charindex.find(x => x.Id === req.query.id)) { resp.status(400).send(); }
           userchars = [userchars.find(x => x.Id === req.query.id)];
-          if (userchars[0] === undefined) { resp.status(401).send(); return; }
+          if (userchars[0] === undefined) { resp.status(403).send(); return; }
         }
         if (req.query.name !== undefined) {
           userchars = userchars.filter(x => x.Name.includes(req.query.name));

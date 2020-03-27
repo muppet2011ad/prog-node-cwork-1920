@@ -32,11 +32,11 @@ describe('Test user creation and subsequent authentication', () => {
       .send({ username: 'test', password: 'secret' })
       .expect(200);
   });
-  test('POST /newuser with already taken username fails with 401', () => {
+  test('POST /newuser with already taken username fails with 403', () => {
     return request(app)
       .post('/newuser')
       .send({ username: 'test', password: 'password' })
-      .expect(401);
+      .expect(403);
   });
   test('POST /newuser with incomplete user data fails with 400', () => {
     return request(app)
@@ -170,12 +170,12 @@ describe('Character editing', () => {
         expect(readObject(charDir + '2.json').Spells).toEqual(['spell2', 'spell3']);
       });
   });
-  test('POST /api/editchar to another user\'s character fails with 401', () => {
+  test('POST /api/editchar to another user\'s character fails with 403', () => {
     return request(app)
       .post('/api/editchar')
       .auth('test', 'password')
       .send({ Id: '2', Class: 'Fighter' })
-      .expect(401);
+      .expect(403);
   });
   test('POST /api/editchar without character id fails with 400', () => {
     return request(app)
@@ -229,11 +229,11 @@ describe('Character searching/fetching', () => {
       .expect(200)
       .expect(JSON.stringify([{ Id: '1', Name: 'char1', Level: 1, Class: 'Fighter', Race: 'Human', Spells: [] }]));
   });
-  test('GET /api/characters querying id of another user\'s character fails with 401', () => {
+  test('GET /api/characters querying id of another user\'s character fails with 403', () => {
     return request(app)
       .get('/api/characters?id=2')
       .auth('test', 'password')
-      .expect(401);
+      .expect(403);
   });
   test('GET /api/characters querying an invalid id fails with 400', () => {
     return request(app)
