@@ -4,6 +4,7 @@
   "description": "Roll20 Spell Manager - For Steven Bradley's Coursework",
   "main": "server.js",
   "scripts": {
+    "pretest": "eslint app.js __tests__/app-test.js client/admin.js client/webapp.js",
     "dev": "nodemon app.js",
     "start": "node server.js",
     "test": "cross-env NODE_ENV=test jest"
