@@ -105,6 +105,7 @@ app.post('/api/admin/delspell', function (req, resp) { // Route to delete a spel
       nodeasync.map(reads, readFile, async function (e, d) {
         const charindex = JSON.parse(d[0]);
         let spells = JSON.parse(d[1]);
+        if (!spells.find(x => x.Id === req.query.id)) { resp.status(400).send(); return; }
         const files = charindex.map(x => dataPath + '/chars/' + x.Id + '.json');
         nodeasync.map(files, readFile, async function (err, characters) {
           if (err) {

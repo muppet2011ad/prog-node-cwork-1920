@@ -279,7 +279,7 @@ describe('Spell searching/fetching', () => {
       .get('/api/spells?ids=["1","2"]')
       .auth('test', 'password')
       .expect(200)
-      .expect(JSON.stringify([{ Id: '1', Name: 'spell1', Level: 3, School: 'Evocation', Components: ['V', 'S', 'M'], Damage: '2d6+2', Desc: 'lol' }, { Id: '2', Name: 'spell2', Level: 4, School: 'Evocation', Components: ['V', 'M'], Damage: '4d8+1', Desc: 'lol2' }]))
+      .expect(JSON.stringify([{ Id: '1', Name: 'spell1', Level: 3, School: 'Evocation', Components: ['V', 'S', 'M'], Damage: '2d6+2', Desc: 'lol' }, { Id: '2', Name: 'spell2', Level: 4, School: 'Evocation', Components: ['V', 'M'], Damage: '4d8+1', Desc: 'lol2' }]));
   });
   test('GET /api/spells with name succeeds', () => {
     return request(app)
@@ -340,6 +340,51 @@ describe('Spell adding', () => {
       .post('/api/admin/addspell')
       .auth('test', 'password')
       .send({ Name: 'spell2', Level: 2, School: 'Necromancy', Components: ['V', 'S'], Damage: '', Desc: 'lol2' })
+      .expect(401);
+  });
+});
+
+describe('Spell deleting', () => {
+  beforeEach(() => {
+    writeObject(usersFile, [{ Name: 'test', Password: 'password', Chars: [] }]);
+    writeObject(charindexFile, [{ Id: '1', Name: 'char1' }]);
+    writeObject(charDir + '1.json', { Id: '1', Name: 'char1', Race: 'Human', Class: 'Wizard', Spells: ['1', '2'] });
+    writeObject(spellsFile, [{ Id: '1', Name: 'spell1', Level: 3, School: 'Evocation', Components: ['V', 'S', 'M'], Damage: '2d6+2', Desc: 'lol' }, { Id: '2', Name: 'spell2', Level: 4, School: 'Evocation', Components: ['V', 'M'], Damage: '4d8+1', Desc: 'lol2' }, { Id: '3', Name: 'spell3', Level: 12, School: 'Transmutation', Components: ['V', 'S', 'M'], Damage: '', Desc: 'lol3' }]);
+  });
+  test('POST /api/admin/delspell with valid spell id succeeds', () => {
+    return request(app)
+      .post('/api/admin/delspell?id=1')
+      .auth('admin', 'password')
+      .expect(200)
+      .then(() => {
+        expect(readObject(spellsFile)).toEqual([{ Id: '2', Name: 'spell2', Level: 4, School: 'Evocation', Components: ['V', 'M'], Damage: '4d8+1', Desc: 'lol2' }, { Id: '3', Name: 'spell3', Level: 12, School: 'Transmutation', Components: ['V', 'S', 'M'], Damage: '', Desc: 'lol3' }]);
+      });
+  });
+  test('POST /api/admin/delspell cascade deletes the spell from all characters with it', () => {
+    return request(app)
+      .post('/api/admin/delspell?id=2')
+      .auth('admin', 'password')
+      .expect(200)
+      .then(() => {
+        expect(readObject(charDir + '1.json').Spells).toEqual(['1']);
+      });
+  });
+  test('POST /api/admin/delspell with non-existent spell id fails with 400', () => {
+    return request(app)
+      .post('/api/admin/delspell?id=4')
+      .auth('admin', 'password')
+      .expect(400);
+  });
+  test('POST /api/admin/delspell with no spell id fails with 400', () => {
+    return request(app)
+      .post('/api/admin/delspell')
+      .auth('admin', 'password')
+      .expect(400);
+  });
+  test('POST /api/admin/delspell with non-admin credentials fails with 401', () => {
+    return request(app)
+      .post('/api/admin/delspell?id=1')
+      .auth('test', 'password')
       .expect(401);
   });
 });
