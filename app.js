@@ -98,21 +98,6 @@ app.post('/api/admin/addspell', function (req, resp) { // Route to add a spell
   }
 });
 
-app.post('/api/admin/addspells', function (req, resp) { // Route to add multiple spells
-  try {
-    fs.readFile(dataPath + '/spells.json', (e, d) => {
-      if (e) { throw e; }
-      const spells = JSON.parse(d);
-      spells.concat(req.body.arr); // Requires many spells to be given in an array
-      const json = JSON.stringify(spells);
-      fs.writeFile(dataPath + '/spells.json', json, 'utf8', () => { resp.status(200).send(); }); // Save it all
-    });
-  } catch (e) {
-    console.log(e);
-    resp.status(500).send();
-  }
-});
-
 app.post('/api/admin/delspell', function (req, resp) { // Route to delete a spell
   try {
     if (req.query.id !== undefined) { // If the spell given isn't undefined
