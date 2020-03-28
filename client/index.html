@@ -49,7 +49,8 @@
                     headers: new Headers({"Content-Type": "application/json"})
                 });
                 const text = document.getElementById("responsetext");
-                if (response.status === 401) {text.innerHTML="Account already exists"; text.style="color:red";}
+                console.log(response.status);
+                if (response.status === 403) {text.innerHTML="Account already exists"; text.style="color:red";}
                 if (response.status === 400) {text.innerHTML="Not all fields complete"; text.style="color:red";}
                 if (response.status === 500) {text.innerHTML="Internal server error"; text.style="color:red";}
                 if (response.status === 200) {
@@ -57,6 +58,7 @@
                     text.style="color:green";
                     let auth = 'Basic ' + btoa(user + ':' + pw);
                     localStorage.setItem("auth", auth);
+                    window.location.href = "http://localhost:8090/webapp.html";
                 }
             } catch (e) {
                 if (e instanceof TypeError) {
