@@ -82,7 +82,8 @@ document.getElementById('addSpellForm').onsubmit = async function (event) {
     const formData = new FormData(event.target);
     const formJson = {};
     for (const [k, v] of formData.entries()) { // This should parse it into json,
-      formJson[k] = v;
+      if (k === 'Level') { formJson[k] = parseInt(v); }
+      else { formJson[k] = v; }
     }
     const response = await fetch('http://localhost:8090/api/admin/addspell', {
       method: 'POST',
