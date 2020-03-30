@@ -170,7 +170,7 @@ app.post('/api/newchar', function (req, resp) { // Route to create a character
       const writes = [{ path: dataPath + '/charindex.json', json: charindex }, { path: dataPath + '/chars/' + newchar.Id + '.json', json: newchar }, { path: dataPath + '/users.json', json: users }];
       nodeasync.map(writes, JSONToFile, (e, r) => {
         if (e) { resp.status(500).send(); }
-        else { resp.status(200).send(); }
+        else { resp.status(200).send(newchar.Id); }
       });
     });
   } catch (e) {

@@ -128,13 +128,7 @@ async function addSpell (event) {
       body: JSON.stringify(bodyJson)
     });
     if (response.status === 200) {
-      const charResp = await fetch('http://localhost:8090/api/characters?id=' + selectedChar.Id, {
-        method: 'GET',
-        headers: new Headers({ Authorization: auth })
-      });
-      const json = await charResp.json();
-      const newSpells = json[0].Spells;
-      characters.find(x => x.Id === selectedChar.Id).Spells = newSpells;
+      characters.find(x => x.Id === selectedChar.Id).Spells.push(spell);
       document.getElementById('addSpellModalClose').click();
       Array.from(document.getElementById('charresults').children).forEach(char => {
         if (char.getAttribute('data-character') === selectedChar.Id) {
