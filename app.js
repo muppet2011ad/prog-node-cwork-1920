@@ -87,14 +87,14 @@ app.post('/api/admin/addspell', function (req, resp) { // Route to add a spell
         Damage: req.body.Damage,
         Desc: req.body.Desc // Set everything else based on the request
       };
-      if (newspell.Name === undefined || newspell.Level === undefined || newspell.School === undefined || newspell.Components === undefined || newspell.Damage === undefined) {
+      if (newspell.Name === undefined || newspell.Level === undefined || newspell.School === undefined || newspell.Components === undefined || newspell.Damage === undefined || newspell.Level < 0 || newspell.Level > 9) {
         // If any of the major things are undefined, then we give a bad request
         resp.status(400).send();
         return;
       }
       spells.push(newspell); // If everything is kosher then add the spell to the list
       const json = JSON.stringify(spells); // JSON it up
-      fs.writeFile(dataPath + '/spells.json', json, 'utf8', () => { resp.status(200).send(); }); // Write it to the file (this goes to the worker pool so shouldn't be blocking)
+      fs.writeFile(dataPath + '/spells.json', json, 'utf8', () => { resp.status(200).send(newspell.Id); }); // Write it to the file (this goes to the worker pool so shouldn't be blocking)
     });
   } catch (e) { // If we have an error
     console.log(e); // Log it (for debugging)
