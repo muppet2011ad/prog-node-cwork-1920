@@ -213,6 +213,7 @@ describe('Character searching/fetching', () => {
       .get('/api/characters')
       .auth('test', 'password')
       .expect(200)
+      .expect('Content-Type', 'application/json; charset=utf-8')
       .expect(JSON.stringify([{ Id: '1', Name: 'char1', Level: 1, Class: 'Fighter', Race: 'Human', Spells: [] }, { Id: '3', Name: 'char3', Level: 1, Class: 'Ranger', Race: 'Elf', Spells: ['spell1'] }]));
   });
   test('GET /api/characters querying by name succeeds', () => {
@@ -220,6 +221,7 @@ describe('Character searching/fetching', () => {
       .get('/api/characters?name=char1')
       .auth('test', 'password')
       .expect(200)
+      .expect('Content-Type', 'application/json; charset=utf-8')
       .expect(JSON.stringify([{ Id: '1', Name: 'char1', Level: 1, Class: 'Fighter', Race: 'Human', Spells: [] }]));
   });
   test('GET /api/characters querying by id succeeds', () => {
@@ -227,6 +229,7 @@ describe('Character searching/fetching', () => {
       .get('/api/characters?id=1')
       .auth('test', 'password')
       .expect(200)
+      .expect('Content-Type', 'application/json; charset=utf-8')
       .expect(JSON.stringify([{ Id: '1', Name: 'char1', Level: 1, Class: 'Fighter', Race: 'Human', Spells: [] }]));
   });
   test('GET /api/characters querying id of another user\'s character fails with 403', () => {
@@ -246,6 +249,7 @@ describe('Character searching/fetching', () => {
       .get('/api/characters?name=John')
       .auth('test', 'password')
       .expect(200)
+      .expect('Content-Type', 'application/json; charset=utf-8')
       .expect(JSON.stringify([]));
   });
   test('GET /api/characters with no authentication fails with 401', () => {
@@ -265,6 +269,7 @@ describe('Spell searching/fetching', () => {
       .get('/api/spells')
       .auth('test', 'password')
       .expect(200)
+      .expect('Content-Type', 'application/json; charset=utf-8')
       .expect(JSON.stringify([{ Id: '1', Name: 'spell1', Level: 3, School: 'Evocation', Components: ['V', 'S', 'M'], Damage: '2d6+2', Desc: 'lol' }, { Id: '2', Name: 'spell2', Level: 4, School: 'Evocation', Components: ['V', 'M'], Damage: '4d8+1', Desc: 'lol2' }, { Id: '3', Name: 'spell3', Level: 12, School: 'Transmutation', Components: ['V', 'S', 'M'], Damage: '', Desc: 'lol3' }]));
   });
   test('GET /api/spells with single id succeeds', () => {
@@ -272,6 +277,7 @@ describe('Spell searching/fetching', () => {
       .get('/api/spells?id=1')
       .auth('test', 'password')
       .expect(200)
+      .expect('Content-Type', 'application/json; charset=utf-8')
       .expect(JSON.stringify([{ Id: '1', Name: 'spell1', Level: 3, School: 'Evocation', Components: ['V', 'S', 'M'], Damage: '2d6+2', Desc: 'lol' }]));
   });
   test('GET /api/spells with multiple ids succeeds', () => {
@@ -279,6 +285,7 @@ describe('Spell searching/fetching', () => {
       .get('/api/spells?ids=["1","2"]')
       .auth('test', 'password')
       .expect(200)
+      .expect('Content-Type', 'application/json; charset=utf-8')
       .expect(JSON.stringify([{ Id: '1', Name: 'spell1', Level: 3, School: 'Evocation', Components: ['V', 'S', 'M'], Damage: '2d6+2', Desc: 'lol' }, { Id: '2', Name: 'spell2', Level: 4, School: 'Evocation', Components: ['V', 'M'], Damage: '4d8+1', Desc: 'lol2' }]));
   });
   test('GET /api/spells with name succeeds', () => {
@@ -286,6 +293,7 @@ describe('Spell searching/fetching', () => {
       .get('/api/spells?name=1')
       .auth('test', 'password')
       .expect(200)
+      .expect('Content-Type', 'application/json; charset=utf-8')
       .expect(JSON.stringify([{ Id: '1', Name: 'spell1', Level: 3, School: 'Evocation', Components: ['V', 'S', 'M'], Damage: '2d6+2', Desc: 'lol' }]));
   });
   test('GET /api/spells with spell level succeeds', () => {
@@ -293,6 +301,7 @@ describe('Spell searching/fetching', () => {
       .get('/api/spells?level=3')
       .auth('test', 'password')
       .expect(200)
+      .expect('Content-Type', 'application/json; charset=utf-8')
       .expect(JSON.stringify([{ Id: '1', Name: 'spell1', Level: 3, School: 'Evocation', Components: ['V', 'S', 'M'], Damage: '2d6+2', Desc: 'lol' }]));
   });
   test('GET /api/spells with spell school succeeds', () => {
@@ -300,6 +309,7 @@ describe('Spell searching/fetching', () => {
       .get('/api/spells?school=Evocation')
       .auth('test', 'password')
       .expect(200)
+      .expect('Content-Type', 'application/json; charset=utf-8')
       .expect(JSON.stringify([{ Id: '1', Name: 'spell1', Level: 3, School: 'Evocation', Components: ['V', 'S', 'M'], Damage: '2d6+2', Desc: 'lol' }, { Id: '2', Name: 'spell2', Level: 4, School: 'Evocation', Components: ['V', 'M'], Damage: '4d8+1', Desc: 'lol2' }]));
   });
   test('GET /api/spells with spell damage succeeds', () => {
@@ -307,6 +317,7 @@ describe('Spell searching/fetching', () => {
       .get('/api/spells?damage=2d6%2B2')
       .auth('test', 'password')
       .expect(200)
+      .expect('Content-Type', 'application/json; charset=utf-8')
       .expect(JSON.stringify([{ Id: '1', Name: 'spell1', Level: 3, School: 'Evocation', Components: ['V', 'S', 'M'], Damage: '2d6+2', Desc: 'lol' }]));
   });
 });
