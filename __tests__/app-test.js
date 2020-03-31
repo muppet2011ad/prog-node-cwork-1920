@@ -7,17 +7,17 @@ const fs = require('fs');
 const usersFile = './tmp/data/users.json';
 const charindexFile = './tmp/data/charindex.json';
 const spellsFile = './tmp/data/spells.json';
-const charDir = './tmp/data/chars/';
+const charDir = './tmp/data/chars/'; // Set constants for where we store files
 
 beforeAll(() => {
-  if (process.env.NODE_ENV !== 'test') {
+  if (process.env.NODE_ENV !== 'test') { // In order for the server to be in testing mode, we need to make sure the appropriate environment variable is set
     process.env.NODE_ENV = 'test';
   }
-  fs.rmdirSync('./tmp/', { recursive: true });
-  app = require('../app');
+  fs.rmdirSync('./tmp/', { recursive: true }); // Remove anything in /tmp (this should be done already but we do it here in case the last test crashed)
+  app = require('../app'); // Load in the app
 });
 
-describe('Verify app is responding', () => {
+describe('Verify app is responding', () => { // This test suite just checks everything is working before moving on
   test('GET /ping', () => {
     return request(app)
       .get('/ping')
@@ -27,15 +27,15 @@ describe('Verify app is responding', () => {
 
 describe('Test user creation and subsequent authentication', () => { // Tests for /auth and /api/newuser
   beforeEach(() => {
-    writeObject(usersFile, [{ Name: 'taken', Password: 'secret', chars: [] }]);
+    writeObject(usersFile, [{ Name: 'taken', Password: 'secret', chars: [] }]); // Reset the users file to a known user before each test
   });
-  test('POST /newuser with valid user succeeds', () => {
+  test('POST /newuser with valid user succeeds', () => { // Verify we can make a user
     return request(app)
       .post('/newuser')
       .send({ username: 'test', password: 'secret' })
-      .expect(200)
+      .expect(200) // We expect the request to succeed
       .then(() => {
-        expect(readObject(usersFile)[1]).toEqual({ Name: 'test', Password: 'secret', Chars: [] });
+        expect(readObject(usersFile)[1]).toEqual({ Name: 'test', Password: 'secret', Chars: [] }); // Afterwards check that the user actually exists
       });
   });
   test('POST /newuser with already taken username fails with 403', () => {
@@ -53,7 +53,7 @@ describe('Test user creation and subsequent authentication', () => { // Tests fo
   test('GET /auth with created user succeeds', () => {
     return request(app)
       .get('/auth')
-      .auth('test', 'secret')
+      .auth('taken', 'secret')
       .expect('user')
       .expect(200);
   });
@@ -78,10 +78,10 @@ describe('Test user creation and subsequent authentication', () => { // Tests fo
   });
 });
 
-describe('Character creation and deletion', () => {
+describe('Character creation and deletion', () => { // Test for /api/newchar and /api/delchar
   beforeEach(() => {
-    writeObject(usersFile, [{ Name: 'test', Password: 'password', Chars: [] }]);
-    writeObject(charindexFile, []);
+    writeObject(usersFile, [{ Name: 'test', Password: 'password', Chars: [] }]); // We need to have a user available to start interacting with characters
+    writeObject(charindexFile, []); // Also write a blank charindex (we do this each test just in case a failed test corrupts the file)
   });
   test('POST /api/newchar with new character details succeeds', () => {
     return request(app)
@@ -90,9 +90,10 @@ describe('Character creation and deletion', () => {
       .send({ Name: 'John Smith', Class: 'Fighter', Race: 'Human', Level: 2 })
       .expect(200) // Verifies request completed successfully
       .then(response => {
-        const charid = JSON.parse(fs.readFileSync('./tmp/data/users.json'))[0].Chars[0];
-        expect(fs.existsSync(charDir + charid + '.json')).toBeTruthy();
-        expect(fs.readFileSync(charindexFile).includes(charid)).toBeTruthy();
+        const charid = JSON.parse(fs.readFileSync('./tmp/data/users.json'))[0].Chars[0]; // Get the id of the character from file
+        expect(charid).toEqual(response.text); // Check it's equal to what the request gave us
+        expect(fs.existsSync(charDir + charid + '.json')).toBeTruthy(); // Verify that the file has been written
+        expect(fs.readFileSync(charindexFile).includes(charid)).toBeTruthy(); // Verify that an entry for the new character exists in the index
       });
   });
   test('POST /api/newchar with incomplete character details fails with 400', () => {
@@ -110,17 +111,17 @@ describe('Character creation and deletion', () => {
   });
   test('POST /api/delchar with existing character succeeds', () => {
     writeObject(charindexFile, [{ Id: '123', Name: 'test' }]);
-    writeObject(usersFile, [{ Name: 'test', Password: 'password', Chars: ['123'] }]);
+    writeObject(usersFile, [{ Name: 'test', Password: 'password', Chars: ['123'] }]); // Fill in a sampel character
     writeObject(charDir + '123.json', { Id: '123', Name: 'test' }); // I haven't filled in all of the character information but it shouldn't make any difference
     return request(app)
       .post('/api/delchar')
       .auth('test', 'password')
       .send({ Id: '123' })
-      .expect(200)
+      .expect(200) // The request should complete successfully
       .then(() => {
-        expect(fs.existsSync(charDir + '123.json')).toBeFalsy();
-        expect(readObject(usersFile)[0].Chars).toEqual([]);
-        expect(readObject(charindexFile)).toEqual([]);
+        expect(fs.existsSync(charDir + '123.json')).toBeFalsy(); // The character file should be deleted
+        expect(readObject(usersFile)[0].Chars).toEqual([]); // The user shouldn't have any characters anymore
+        expect(readObject(charindexFile)).toEqual([]); // The character shouldn't exist in the index
       });
   });
   test('POST /api/delchar with non-existent character fails with 400', () => {
@@ -140,10 +141,10 @@ describe('Character creation and deletion', () => {
 
 describe('Character editing', () => {
   beforeEach(() => {
-    writeObject(usersFile, [{ Name: 'test', Password: 'password', Chars: ['1'] }, { Name: 'test2', Password: 'password', Chars: ['2'] }]);
-    writeObject(charindexFile, [{ Id: '1', Name: 'char1' }, { Id: '2', Name: 'char2' }]);
+    writeObject(usersFile, [{ Name: 'test', Password: 'password', Chars: ['1'] }, { Name: 'test2', Password: 'password', Chars: ['2'] }]); // Write some sample users
+    writeObject(charindexFile, [{ Id: '1', Name: 'char1' }, { Id: '2', Name: 'char2' }]); // Two characters exist in the index
     writeObject(charDir + '1.json', { Id: '1', Name: 'char1', Level: 1, Class: 'Fighter', Race: 'Human', Spells: [] });
-    writeObject(charDir + '2.json', { Id: '2', Name: 'char2', Level: 2, Class: 'Wizard', Race: 'Human', Spells: ['spell1', 'spell4'] });
+    writeObject(charDir + '2.json', { Id: '2', Name: 'char2', Level: 2, Class: 'Wizard', Race: 'Human', Spells: ['spell1', 'spell4'] }); // Write files for both characters
   });
   test('POST /api/editchar to change all but character name and spells succeeds', () => {
     return request(app)
@@ -152,6 +153,7 @@ describe('Character editing', () => {
       .send({ Id: '1', Level: 2, Class: 'Monk', Race: 'Dwarf' })
       .expect(200)
       .then(() => {
+        // Verifies that the changes are actually written to disk
         expect(readObject(charDir + '1.json')).toEqual({ Id: '1', Name: 'char1', Level: 2, Class: 'Monk', Race: 'Dwarf', Spells: [] });
       });
   });
@@ -163,7 +165,7 @@ describe('Character editing', () => {
       .expect(200)
       .then(() => {
         expect(readObject(charDir + '1.json').Name).toEqual('John Smith');
-        expect(readObject(charindexFile)[0].Name).toEqual('John Smith');
+        expect(readObject(charindexFile)[0].Name).toEqual('John Smith'); // When changing the name, we also have to check the change applies to the index
       });
   });
   test('POST /api/editchar to change spells succeeds', () => {
@@ -207,19 +209,19 @@ describe('Character editing', () => {
 });
 
 describe('Character searching/fetching', () => {
-  beforeAll(() => {
+  beforeAll(() => { // We write out this data only once since a GET request shouldn't change the content
     writeObject(usersFile, [{ Name: 'test', Password: 'password', Chars: ['1', '3'] }, { Name: 'test2', Password: 'password', Chars: ['2'] }]);
     writeObject(charindexFile, [{ Id: '1', Name: 'char1' }, { Id: '2', Name: 'char2' }, { Id: '3', Name: 'char3' }]);
     writeObject(charDir + '1.json', { Id: '1', Name: 'char1', Level: 1, Class: 'Fighter', Race: 'Human', Spells: [] });
     writeObject(charDir + '3.json', { Id: '3', Name: 'char3', Level: 1, Class: 'Ranger', Race: 'Elf', Spells: ['spell1'] });
-    writeObject(charDir + '2.json', { Id: '2', Name: 'char2', Level: 2, Class: 'Wizard', Race: 'Human', Spells: ['spell1', 'spell4'] });
+    writeObject(charDir + '2.json', { Id: '2', Name: 'char2', Level: 2, Class: 'Wizard', Race: 'Human', Spells: ['spell1', 'spell4'] }); // Write out some sample data
   });
   test('GET /api/characters with no query returns all characters for the user', () => {
     return request(app)
       .get('/api/characters')
       .auth('test', 'password')
       .expect(200)
-      .expect('Content-Type', 'application/json; charset=utf-8')
+      .expect('Content-Type', 'application/json; charset=utf-8') // We're getting JSON back so it's best to check that the server sets the content type
       .expect(JSON.stringify([{ Id: '1', Name: 'char1', Level: 1, Class: 'Fighter', Race: 'Human', Spells: [] }, { Id: '3', Name: 'char3', Level: 1, Class: 'Ranger', Race: 'Elf', Spells: ['spell1'] }]));
   });
   test('GET /api/characters querying by name succeeds', () => {
