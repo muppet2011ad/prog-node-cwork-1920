@@ -25,17 +25,23 @@ describe('Verify app is responding', () => {
   });
 });
 
-describe('Test user creation and subsequent authentication', () => {
+describe('Test user creation and subsequent authentication', () => { // Tests for /auth and /api/newuser
+  beforeEach(() => {
+    writeObject(usersFile, [{ Name: 'taken', Password: 'secret', chars: [] }]);
+  });
   test('POST /newuser with valid user succeeds', () => {
     return request(app)
       .post('/newuser')
       .send({ username: 'test', password: 'secret' })
-      .expect(200);
+      .expect(200)
+      .then(() => {
+        expect(readObject(usersFile)[1]).toEqual({ Name: 'test', Password: 'secret', Chars: [] });
+      });
   });
   test('POST /newuser with already taken username fails with 403', () => {
     return request(app)
       .post('/newuser')
-      .send({ username: 'test', password: 'password' })
+      .send({ username: 'taken', password: 'password' })
       .expect(403);
   });
   test('POST /newuser with incomplete user data fails with 400', () => {
