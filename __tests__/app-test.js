@@ -346,6 +346,13 @@ describe('Spell adding', () => {
       .send({ Name: 'spell2', Level: 2, Components: ['V', 'S'], Damage: '', Desc: 'lol2' })
       .expect(400);
   });
+  test('POST /api/admin/addspell with invalid spell level fails with 400', () => {
+    return request(app)
+      .post('/api/admin/addspell')
+      .auth('admin', 'password')
+      .send({ Name: 'spell3', Level: 14, School: 'Transmutation', Components: ['V', 'S'], Damage: '', Desc: 'lol3' })
+      .expect(400);
+  });
   test('POST /api/admin/addspell with non-admin credentials fails with 401', () => {
     return request(app)
       .post('/api/admin/addspell')
