@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <title>[Admin] d20 Spell Manager</title>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+        <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+    </head>
+    <body>
+        <div class="jumbotron text-center" style="margin-bottom:0">
+            <h1>d20 Spell Manager</h1>
+            <p>Admin Console (Spell Manager)</p>
+        </div>
+        <div class="container" style="margin-top:25px">
+            <div class="row">
+                <div class="col" id="delSpellCol">
+                    <h2>Delete Spells</h2>
+                    <div id="delSpellList" class="overflow-auto list-group"></div>
+                </div>
+                <div class="col" id="addSpellCol">
+                    <h2>Add Spells</h2>
+                    <div class="border rounded">
+                        <form id="addSpellForm">
+                            <div class="container" style="margin-top:25px; margin-right: 10px; margin-left: 10px; margin-bottom: 25px">
+                                <div class="row">
+                                    <div class="col">
+                                        <label>Spell Name:</label><br>
+                                        <input type="text" placeholder="Enter spell name..." name="Name" required="true">
+                                    </div>
+                                    <div class="col">
+                                        <label>School:</label><br>
+                                        <input type="text" placeholder="Enter spell school..." name="School" required="true">
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col">
+                                        <label>Level:</label><br>
+                                        <input type="number" min="0" max="9" name="Level" required="true">
+                                    </div>
+                                    <div class="col">
+                                        <label>Components:</label><br>
+                                        <input type="text" placeholder="Enter spell components..." name="Components" required="true">
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col">
+                                        <label>Damage:</label><br>
+                                        <input type="text" placeholder="Enter spell damage..." name="Damage">
+                                    </div>
+                                    <div class="col">
+                                        <label>Spell Description</label><br>
+                                        <textarea name="Desc"></textarea>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-success">Create Spell</button>
+                                <p id="addSpellResult"></p>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="modal fade" id="delSpellModal" tabindex="-1" role="dialog">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header text-center">
+                                <h4>Really Delete?</h4>
+                                <button type="button" class="close" data-dismiss="modal" id="delSpellClose"><span>&times;</span></button>
+                            </div>
+                            <div class="modal-body">
+                                <p>Deleting the spell is an irreversible action. Are you sure you want to proceed?</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="delSpellClose2">Close</button>
+                                <button type="button" class="btn btn-danger" data-dismiss="modal" id="delSpellConfirm">Delete Spell</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+    <script src="admin.js"></script>
+</html>

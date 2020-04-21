@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <title>d20 Spell Manager</title>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+        <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        <div class="jumbotron text-center" style="margin-bottom:0">
+            <h1>d20 Spell Manager</h1>
+            <p id="welcome"></p>
+        </div>
+        <div class="container" style="margin-top:25px">
+            <div class="row">
+                <div class="col" id="searchcol">
+                    <h2>My Characters</h2>
+                    <form id="charsearch">
+                        <div class="container">
+                            <div class="row">
+                                <label for="name">Search Characters:</label>
+                            </div>
+                            <div class="row">
+                                <div class="col-8">
+                                    <input type="text" id="name" class="form-control" placeholder="Character name (leave blank to fetch all)">
+                                </div>
+                                <div class="col-4">
+                                    <button type="submit" class="btn btn-primary">Search</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="results"><a id="charresults"></a></div>
+                    <button type = "button" class="btn btn-success" style="margin-top: 25px" data-toggle="modal" data-target="#charCreateModal" id="newCharBtn">New Character</button>
+                    <div class="modal fade" id="charCreateModal" tabindex="-1" role="dialog">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header text-center">
+                                    <h4 class="modal-title font-weight-bold">New Character</h4>
+                                    <button type="button" class="close" data-dismiss="modal" id="newCharModalClose"><span>&times;</span></button>
+                                </div>
+                                <form id="newCharForm">
+                                    <div class="modal-body">
+                                        <label>Character Name:</label>
+                                        <input id="newCharName" class="form-control" type="text" name="Name">
+                                        <label>Level (1-20):</label>
+                                        <input id="newCharLvl" class="form-control validate" type="number" min="1" max="20" name="Level">
+                                        <label>Race:</label>
+                                        <input id="newCharRace" class="form-control" type="text" name="Race">
+                                        <label>Class:</label>
+                                        <input id="newCharClass" class="form-control" type="text" name="Class">
+                                    </div>
+                                    <div class="modal-footer justify-content-center">
+                                        <div class="container justify-content-center">
+                                            <div class="row justify-content-center"><button class="btn btn-primary" type="submit">Submit</button></div>
+                                            <div class="row justify-content-center"><p id="newCharErrorP" style="color:red"></p></div>
+                                        </div>                                        
+                                    </div>
+                                </form>  
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col" id="charcol">
+                    <h2>Character</h2>
+                    <div class="border rounded d-none" id="charPanel">
+                        <div style="margin-left:25px; margin-top:15px; margin-right:25px">
+                            <div class="d-flex flex-row">
+                                <div class="d-flex justify-content-start flex-fill">
+                                    <h4 id="charName"></h4>
+                                </div>
+                                <div class="d-flex justify-content-end flex-fill">
+                                    <button id="editCharBtn" class="btn btn-warning" data-toggle="modal" data-target="#editCharModal" style="margin-right:5px">Edit</button>
+                                    <button id="delCharBtn" class="btn btn-danger" data-toggle="modal" data-target="#charConfirmDelete">Delete</button>
+                                </div>
+                            </div>
+                            <p id="charLevelClass"></p>
+                            <p id="charRace"></p>
+                            <div class="d-flex flex-row">
+                                <div class="d-flex justify-content-start flex-fill"><h5>Spells:</h5></div>
+                                <div class="d-flex justify-content-end flex-fill">
+                                    <button id="addSpellBtn" class="btn btn-success" style="margin-right:5px" data-target="#addSpellModal" data-toggle="modal">Add</button>
+                                    <button id="removeSpellBtn" class="btn btn-danger" data-toggle="modal" data-target="#removeSpellModal">Remove</button>
+                                </div>
+                            </div>
+                            <div id="spellList" class="overflow-auto list-group" style="margin-left:25px; margin-top:15px; margin-right:25px; margin-bottom: 15px; max-height: 50vh"></div>
+                        </div>
+                        <div class="modal fade" id="charConfirmDelete" tabindex="-2" role="dialog">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header text-center">
+                                        <h4>Really Delete?</h4>
+                                        <button type="button" class="close" data-dismiss="modal" id="charConfirmDeleteClose1"><span>&times;</span></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p>Deleting the character is an irreversible action. Are you sure you want to proceed?</p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal" id="charConfirmDeleteClose2">Close</button>
+                                        <button type="button" class="btn btn-danger" data-dismiss="modal" id="charConDelBtn">Delete Character</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal fade" id="spellInfoModal" tabindex="-3" role="dialog">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header text-center">
+                                        <h4 id="spellInfoName"></h4>
+                                        <button type="button" class="close" data-dismiss="modal" id="spellInfoClose1"><span>&times;</span></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="container-fluid">
+                                            <div class="row">
+                                                <div class="col">
+                                                    <p id="spellInfoLevel"></p>
+                                                    <p id="spellInfoSchool"></p>
+                                                </div>
+                                                <div class="col">
+                                                    <p id="spellInfoComponents"></p>
+                                                    <p id="spellInfoDamage"></p>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <p id="spellInfoDesc"></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal fade" id="editCharModal" tabindex="-4" role="dialog">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header text-center">
+                                        <h4 class="modal-title font-weight-bold" id="editCharTitle"></h4>
+                                        <button type="button" class="close" data-dismiss="modal" id="editCharModalClose"><span>&times;</span></button>
+                                    </div>
+                                    <form id="editCharForm">
+                                        <div class="modal-body">
+                                            <label>Character Name:</label>
+                                            <input id="editCharName" class="form-control" type="text" name="Name">
+                                            <label>Level (1-20):</label>
+                                            <input id="editCharLvl" class="form-control validate" type="number" min="1" max="20" name="Level">
+                                            <label>Race:</label>
+                                            <input id="editCharRace" class="form-control" type="text" name="Race">
+                                            <label>Class:</label>
+                                            <input id="editCharClass" class="form-control" type="text" name="Class">
+                                        </div>
+                                        <div class="modal-footer justify-content-center">
+                                            <div class="container justify-content-center">
+                                                <div class="row justify-content-center"><button class="btn btn-primary" type="submit">Submit</button></div>
+                                                <div class="row justify-content-center"><p id="editCharErrorP" style="color:red"></p></div>
+                                            </div>                                        
+                                        </div>
+                                    </form>  
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal fade" id="addSpellModal" tabindex="-5" role="dialog">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header text-center">
+                                        <h4 class="modal-title font-weight-bold" id="addSpellTitle">Add Spells</h4>
+                                        <button type="button" class="close" data-dismiss="modal" id="addSpellModalClose"><span>&times;</span></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form id="spellSearchForm">
+                                            <div class="container">
+                                                <div class="row">
+                                                    <div class="col">
+                                                        <label>Spell Name</label>
+                                                        <input id="addSpellName" class="form-control" type="text" name="name">
+                                                        <label>Level</label>
+                                                        <input id="addSpellLvl" class="form-control" type="number" name="level">
+                                                    </div>
+                                                    <div class="col">
+                                                        <label>School</label>
+                                                        <input id="addSpellSchool" class="form-control" type="text" name="school">
+                                                        <label>Damage</label>
+                                                        <input id="addSpellDamage" class="form-control" type="text" name="damage">
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col">
+                                                        <button class="btn btn-primary" type="submit" style="margin-top:5px">Search</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </form>
+                                        <h4 id="addSpellResultsHeader"></h4>
+                                        <div class="accordion" id="addSpellResults"></div>
+                                    </div>
+                                    <template id="addSpellSearchResult">
+                                        <div class="card">
+                                            <div class="card-header">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <div><button class="btn btn-link" type="button" data-toggle="collapse"></button></div>
+                                                    <div><button class="btn btn-outline-secondary resultLevel" disabled></button></div>
+                                                    <div><button class="btn btn-success">Add</button></div>
+                                                </div>
+                                            </div>
+                                            <div class="collapse" data-parent="#addSpellResults">
+                                                <div class="card-body">
+                                                    <div class="container">
+                                                        <div class="row">
+                                                            <div class="col resultDamage"></div>
+                                                            <div class="col resultSchool"></div>
+                                                            <div class="col resultComponents"></div>
+                                                        </div>
+                                                        <div class="row">
+                                                            <div class="col resultDesc"></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal fade" id="removeSpellModal" tabindex="-6" role="dialog">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header text-center">
+                                        <h4 class="modal-title font-weight-bold">Delete Spells</h4>
+                                        <button type="button" class="close" data-dismiss="modal" id="removeSpellModalClose"><span>&times;</span></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p>Select a spell to remove:</p>
+                                        <div id="removeSpellList" class="overflow-auto list-group"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+    <script src="webapp.js"></script>
+    <script>
+        try{
+            let auth = localStorage.getItem("auth");
+            let username = atob(auth.substring(6)).split(":")[0];
+            if (username == "") {
+                document.getElementById("welcome").innerHTML = "You are not logged in. Please <a href='http://localhost:8090/'>log in</a> before attempting to use the page.";
+            }
+            else{
+                document.getElementById("welcome").innerHTML = "Welcome, " + username;
+            }
+        }
+        catch (e) {
+            document.getElementById("welcome").innerHTML = "You are not logged in. Please <a href='http://localhost:8090/'>log in</a> before attempting to use the page.";
+        }
+    </script>
+</html>

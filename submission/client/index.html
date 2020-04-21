@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <title>d20 Spell Manager</title>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+        <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+    </head>
+    <body>
+        <div class="jumbotron text-center" style="margin-bottom:0">
+            <h1>d20 Spell Manager</h1>
+            <p>Please login to continue</p>
+        </div>
+        <div class="container" style="margin-top:25px">
+            <form>
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" class="form-control" id="username">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" class="form-control" id="password" aria-describedby="pwHelp">
+                    <small id="pwHelp" class="form-text" style="color:red">Passsword is stored in plaintext and sent via HTTP. DO NOT USE A REAL PASSWORD!</small>
+                </div>
+            </form>
+            <div class="row">
+                <div class="col-6">
+                    <button class="btn btn-secondary btn-block" id="newaccount">Create an Account</button>
+                </div>
+                <div class="col-6">
+                    <button class = "btn btn-primary btn-block" id="login">Login</button>
+                </div>
+            </div>
+            <p id="responsetext"></p>
+        </div>
+    </body>
+    <script>
+        document.getElementById("newaccount").addEventListener("click", async function(event){
+            try {
+                let user = document.getElementById("username").value;
+                let pw = document.getElementById("password").value;
+                const response = await fetch(url="http://localhost:8090/newuser", {
+                    method: "POST", 
+                    body: JSON.stringify({username: user, password: pw}),
+                    headers: new Headers({"Content-Type": "application/json"})
+                });
+                const text = document.getElementById("responsetext");
+                console.log(response.status);
+                if (response.status === 403) {text.innerHTML="Account already exists"; text.style="color:red";}
+                if (response.status === 400) {text.innerHTML="Not all fields complete"; text.style="color:red";}
+                if (response.status === 500) {text.innerHTML="Internal server error"; text.style="color:red";}
+                if (response.status === 200) {
+                    text.innerHTML="Account creation successful, redirecting...";
+                    text.style="color:green";
+                    let auth = 'Basic ' + btoa(user + ':' + pw);
+                    localStorage.setItem("auth", auth);
+                    window.location.href = "http://localhost:8090/webapp.html";
+                }
+            } catch (e) {
+                if (e instanceof TypeError) {
+                    const text = document.getElementById("responsetext");
+                    text.innerText = "Could not reach server. Please try again later.";
+                    text.style="color:red";
+                }
+                else {
+                    throw e;
+                }
+            }
+            
+        });
+        document.getElementById("login").addEventListener("click", async function(event){
+            try {
+                let username = document.getElementById("username").value;
+                let password = document.getElementById("password").value;
+                let auth = 'Basic ' + btoa(username + ':' + password);
+                const response = await fetch(url="http://localhost:8090/auth", {
+                    method: "GET",
+                    headers: new Headers({"Authorization": auth})
+                });
+                const text = document.getElementById("responsetext");
+                if (response.status === 401) {text.innerHTML="Account credentials invalid"; text.style="color:red"}
+                if (response.status === 500) {text.innerHTML="Internal server error"; text.style="color:red";}
+                if (response.status === 200) {
+                text.innerHTML="Login successful, redirecting...";
+                text.style="color:green";
+                localStorage.setItem("auth", auth);
+                let type = await response.text();
+                if (type == "admin") {
+                    window.location.href = "http://localhost:8090/admin.html";
+                }
+                else{
+                    window.location.href = "http://localhost:8090/webapp.html";
+                }
+                }
+            } catch (e) {
+                if (e instanceof TypeError) {
+                    const text = document.getElementById("responsetext");
+                    text.innerText = "Could not reach server. Please try again later.";
+                    text.style="color:red"; 
+                }
+                else {
+                    throw e;
+                }
+            }
+        });
+    </script>
+</html>
