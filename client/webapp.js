@@ -118,25 +118,25 @@ async function readySpellModal (event) { // Event handler to fill in the details
   document.getElementById('spellInfoDesc').innerText = event.target.getAttribute('data-desc');
 }
 
-async function addSpell (event) {
+async function addSpell (event) { // Function to add a spell to a character
   try {
-    const spell = event.target.getAttribute('data-spell');
-    const bodyJson = { Spells: [[spell], []], Id: selectedChar.Id };
+    const spell = event.target.getAttribute('data-spell'); // Get the spell itself from the button
+    const bodyJson = { Spells: [[spell], []], Id: selectedChar.Id }; // Construct the request body for the editchar request
     const response = await fetch('http://localhost:8090/api/editchar', {
       method: 'POST',
       headers: new Headers({ Authorization: auth, 'Content-Type': 'application/json' }),
       body: JSON.stringify(bodyJson)
-    });
-    if (response.status === 200) {
-      characters.find(x => x.Id === selectedChar.Id).Spells.push(spell);
-      document.getElementById('addSpellModalClose').click();
+    }); // Make the request to the web service
+    if (response.status === 200) { // If it all went well
+      characters.find(x => x.Id === selectedChar.Id).Spells.push(spell); // Add the spell to the local copy of the character data
+      document.getElementById('addSpellModalClose').click(); // Close the modal that got us here
       Array.from(document.getElementById('charresults').children).forEach(char => {
         if (char.getAttribute('data-character') === selectedChar.Id) {
           char.click(); // We simulate a click to get the char info again, just in case someone else made a change we need to fetch
         }
       });
     }
-    else if (response.status === 400) {
+    else if (response.status === 400) { // The rest is just standard HTTP error handling
       alert('Somthing went wrong trying to edit the character. Try reloading the page.');
     }
     else if (response.status === 401) {
@@ -158,31 +158,31 @@ async function addSpell (event) {
   }
 }
 
-async function removeSpell (event) {
+async function removeSpell (event) { // Function to remove spell from a character
   try {
-    const spell = event.target.getAttribute('data-id');
+    const spell = event.target.getAttribute('data-id'); // Get the spell from the button
     const response = await fetch('http://localhost:8090/api/editchar', {
       method: 'POST',
       headers: new Headers({ Authorization: auth, 'Content-Type': 'application/json' }),
       body: JSON.stringify({ Spells: [[], [spell]], Id: selectedChar.Id })
-    });
-    if (response.status === 200) {
-      const spellList = document.getElementById('spellList');
+    }); // Make the request
+    if (response.status === 200) { // If everything went well
+      const spellList = document.getElementById('spellList'); // Get the list of spells
       Array.from(spellList.children).forEach(x => {
         if (x.getAttribute('data-id') === spell) {
           spellList.removeChild(x);
         }
-      });
+      }); // Remove the appropriate spell
       const spellData = charSpells.find(x => x.Id === spell);
-      selectedChar.Spells = selectedChar.Spells.filter(x => x !== spellData.Id);
+      selectedChar.Spells = selectedChar.Spells.filter(x => x !== spellData.Id); // Edit the client-side copy of the character data
       const level = spellData.Level;
       charSpells = charSpells.filter(x => x !== spellData);
       if (charSpells.filter(x => x.Level === level).length === 0) {
         spellList.removeChild(Array.from(spellList.children).find(x => x.innerText === 'Level ' + level + ' Spells'));
-      }
+      } // This makes sure that we don't have a subtitle of "Level x Spells" when there are no spells of that level present anymore
       document.getElementById('removeSpellModalClose').click();
     }
-    else if (response.status === 400) {
+    else if (response.status === 400) { // HTTP error handling
       alert('Somthing went wrong trying to edit the character. Try reloading the page.');
     }
     else if (response.status === 401) {
@@ -319,23 +319,23 @@ document.getElementById('editCharForm').onsubmit = async function (event) { // F
   }
 };
 
-document.getElementById('charConDelBtn').onclick = async function (event) {
+document.getElementById('charConDelBtn').onclick = async function (event) { // Function to delete a character
   try {
     const response = await fetch('http://localhost:8090/api/delchar', {
       method: 'POST',
       headers: new Headers({ Authorization: auth, 'Content-Type': 'application/json' }),
       body: JSON.stringify({ Id: selectedChar.Id })
-    });
-    if (response.status === 401) {
+    }); // Make the request as required
+    if (response.status === 401) { // HTTP error handling
       alert('Deletion was unauthorised. Are you logged in?');
     }
     else if (response.status === 500) {
       alert('Internal Server Error');
     }
-    else if (response.status === 200) {
-      selectedChar = undefined;
-      document.getElementById('charPanel').classList.add('d-none');
-      getAllChars();
+    else if (response.status === 200) { // If it all went well
+      selectedChar = undefined; // Deselect the current character
+      document.getElementById('charPanel').classList.add('d-none'); // Hide the character panel
+      getAllChars(); // Reload the list of characters
     }
   } catch (e) {
     if (e instanceof TypeError) {
@@ -352,28 +352,28 @@ document.getElementById('editCharBtn').onclick = async function (event) { // Eve
   document.getElementById('editCharRace').value = selectedChar.Race;
 };
 
-document.getElementById('spellSearchForm').onsubmit = async function (event) {
+document.getElementById('spellSearchForm').onsubmit = async function (event) { // Function to search through spells
   try {
-    event.preventDefault();
-    const form = event.target;
+    event.preventDefault(); // Cancel the default form submission
+    const form = event.target; // Find the form
     const formData = new FormData(form);
-    const queryString = new URLSearchParams(formData).toString();
+    const queryString = new URLSearchParams(formData).toString(); // Turn the form into a querystring
     const response = await fetch('http://localhost:8090/api/spells?' + queryString, {
       method: 'GET',
       headers: new Headers({ Authorization: auth })
-    });
-    if (response.status === 500) {
+    }); // Make the request
+    if (response.status === 500) { // HTTP error handling
       alert('Internal Server Error');
     }
     else if (response.status === 200) {
-      let spells = await response.json();
+      let spells = await response.json(); // Convert the response to JSON
       const resultsDiv = document.getElementById('addSpellResults');
-      resultsDiv.innerHTML = '';
-      spells = spells.filter(x => !selectedChar.Spells.includes(x.Id));
-      spells.forEach(spell => {
-        const template = document.getElementById('addSpellSearchResult');
-        const clone = template.content.cloneNode(true);
-        const button = clone.querySelector('button');
+      resultsDiv.innerHTML = ''; // Clear any existing results
+      spells = spells.filter(x => !selectedChar.Spells.includes(x.Id)); // Remove spells from the search results that the character already has
+      spells.forEach(spell => { // For every result
+        const template = document.getElementById('addSpellSearchResult'); // Get the template element from the page
+        const clone = template.content.cloneNode(true); // Clone it
+        const button = clone.querySelector('button'); // The rest is just queryselectors to fill in the results data
         button.innerText = spell.Name;
         button.setAttribute('data-target', '#spell-' + spell.Id);
         clone.querySelector('.resultLevel').innerText = 'Level: ' + spell.Level;
@@ -384,11 +384,11 @@ document.getElementById('spellSearchForm').onsubmit = async function (event) {
         clone.querySelector('.collapse').setAttribute('id', 'spell-' + spell.Id);
         clone.querySelector('.btn-success').setAttribute('data-spell', spell.Id);
         clone.querySelector('.btn-success').onclick = addSpell;
-        resultsDiv.appendChild(clone);
+        resultsDiv.appendChild(clone); // Append the result to the list
       });
       document.getElementById('addSpellResultsHeader').innerText = 'Results:';
     }
-    else {
+    else { // HTTP handling
       alert('HTTP error ' + response.status);
     }
   } catch (e) {
